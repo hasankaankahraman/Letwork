@@ -9,8 +9,9 @@ class AddBusinessLoading extends AddBusinessState {}
 
 class AddBusinessSuccess extends AddBusinessState {
   final String message;
+  final String businessId;
 
-  AddBusinessSuccess({required this.message});
+  AddBusinessSuccess({required this.message, required this.businessId});
 }
 
 class AddBusinessError extends AddBusinessState {

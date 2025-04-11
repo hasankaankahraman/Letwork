@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:letwork/features/business/cubit/add_business_cubit.dart';
 import 'package:letwork/features/business/view/add_business_screen.dart';
 import 'package:letwork/features/chat/view/chat_list_screen.dart';
 import 'package:letwork/features/favorites/view/favorites_screen.dart';
@@ -16,12 +18,15 @@ class MainWrapperScreen extends StatefulWidget {
 class _MainWrapperScreenState extends State<MainWrapperScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    HomeScreen(),
-    ChatScreen(),
-    AddBusinessScreen(),
-    FavoritesScreen(),
-    ProfileScreen(),
+  final List<Widget> _pages = [
+    const HomeScreen(),
+    const ChatScreen(),
+    BlocProvider(
+      create: (_) => AddBusinessCubit(),
+      child: const AddBusinessScreen(),
+    ),
+    const FavoritesScreen(),
+    const ProfileScreen(),
   ];
 
   void _onTabSelected(int index) {

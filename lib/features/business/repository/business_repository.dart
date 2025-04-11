@@ -1,10 +1,11 @@
-import 'package:letwork/data/services/business_service.dart';
+import 'package:dio/dio.dart';
+import 'package:letwork/data/services/dio_client.dart';
 
 class BusinessRepository {
-  final BusinessService _service = BusinessService();
+  final Dio _dio = DioClient().dio;
 
-  Future<Map<String, dynamic>> addBusiness(Map<String, dynamic> data) async {
-    final response = await _service.addBusiness(data);
+  Future<Map<String, dynamic>> addBusiness(FormData formData) async {
+    final response = await _dio.post("business/add_business.php", data: formData);
     return response.data;
   }
 }
