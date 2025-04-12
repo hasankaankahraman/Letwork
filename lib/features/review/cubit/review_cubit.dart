@@ -55,4 +55,5 @@ class ReviewCubit extends Cubit<ReviewState> {
     final total = reviews.fold<int>(0, (sum, r) => sum + r.rating);
     return total / reviews.length;
   }
+
 }
