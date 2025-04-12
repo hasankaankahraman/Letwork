@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert'; // dosyanın en üstüne bunu ekle
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -126,10 +127,8 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
         ));
       }
 
-      for (int i = 0; i < services.length; i++) {
-        formData.fields.add(MapEntry('menu[$i][name]', services[i]['name']!));
-        formData.fields.add(MapEntry('menu[$i][price]', services[i]['price']!));
-      }
+      // JSON olarak tüm menu alanını tek seferde gönderiyoruz
+      formData.fields.add(MapEntry('menu', jsonEncode(services)));
 
       context.read<AddBusinessCubit>().addBusiness(formData);
     }
