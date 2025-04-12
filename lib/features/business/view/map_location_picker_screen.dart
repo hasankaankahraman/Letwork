@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:dio/dio.dart';
 
 class MapLocationPickerScreen extends StatefulWidget {
   const MapLocationPickerScreen({super.key});
@@ -17,8 +18,8 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   Future<void> _searchLocation(String query) async {
-    final url = Uri.parse(
-        "https://nominatim.openstreetmap.org/search?q=$query&format=json&limit=1");
+    final url = Uri.parse("https://nominatim.openstreetmap.org/search?q=$query&format=json&limit=1");
+
     final response = await http.get(url, headers: {
       'User-Agent': 'letwork-app'
     });
@@ -40,8 +41,51 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
     }
   }
 
-  void _selectLocation() {
-    Navigator.pop(context, _pickedLocation);
+  Future<void> _selectLocation() async {
+    final address = await _getAddressFromCoordinates(
+      _pickedLocation.latitude,
+      _pickedLocation.longitude,
+    );
+
+    if (!mounted) return;
+
+    Navigator.pop(context, {
+      "latlng": _pickedLocation,
+      "address": address,
+    });
+  }
+
+  Future<String?> _getAddressFromCoordinates(double lat, double lon) async {
+    final dio = Dio();
+    final url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$lat&lon=$lon";
+
+    try {
+      final response = await dio.get(
+        url,
+        options: Options(
+          headers: {
+            'User-Agent': 'letwork-app/1.0 (letwork@example.com)',
+          },
+        ),
+      );
+
+      final address = response.data['address'];
+      print("📍 [Koordinat]: ($lat, $lon)");
+      print("🌍 [Adres verisi]: $address");
+
+      final parts = [
+        address['suburb'],
+        address['road'],
+        address['amenity'],
+        address['town'] ?? address['city'],
+        address['province'],
+      ];
+
+      return parts.whereType<String>().join(', ');
+    } catch (e) {
+      print("❌ Adres alınamadı: $e");
+      return null;
+    }
   }
 
   @override
@@ -51,7 +95,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -72,8 +116,8 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
             child: FlutterMap(
               mapController: _mapController,
               options: MapOptions(
-                initialCenter: _pickedLocation, // 🆕
-                initialZoom: 13, // 🆕
+                initialCenter: _pickedLocation,
+                initialZoom: 13,
                 onTap: (tapPosition, latlng) {
                   setState(() {
                     _pickedLocation = latlng;
@@ -90,11 +134,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                       point: _pickedLocation,
                       width: 40,
                       height: 40,
-                      child: const Icon(
-                        Icons.location_on,
-                        color: Colors.red,
-                        size: 40,
-                      ),
+                      child: const Icon(Icons.location_on, color: Colors.red, size: 40),
                     ),
                   ],
                 ),
@@ -102,7 +142,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(12),
             child: ElevatedButton.icon(
               icon: const Icon(Icons.check),
               label: const Text("Konumu Seç"),

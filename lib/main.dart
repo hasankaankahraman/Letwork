@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:letwork/router/app_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'features/auth/view/login_screen.dart';
 import 'features/main_wrapper/main_wrapper_screen.dart';
 
@@ -26,6 +26,8 @@ class LetWorkApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
+      initialRoute: '/', // Başlangıç route'u
+      onGenerateRoute: AppRouter.generateRoute, // Route'ları AppRouter ile yönetiyoruz
       home: FutureBuilder<bool>(
         future: checkLoginStatus(),
         builder: (context, snapshot) {
@@ -34,7 +36,7 @@ class LetWorkApp extends StatelessWidget {
           } else if (snapshot.hasData && snapshot.data == true) {
             return const MainWrapperScreen(); // ✅ Oturum varsa tab bar ekranı
           } else {
-            return const LoginScreen(); // ❌ Oturum yoksa login
+            return const LoginScreen(); // ❌ Oturum yoksa login ekranı
           }
         },
       ),
