@@ -9,6 +9,8 @@ class BusinessDetailModel {
   final String closeTime;
   final List<dynamic> images;
   final List<dynamic> menu;
+  final double latitude;
+  final double longitude;
 
   BusinessDetailModel({
     required this.id,
@@ -21,6 +23,8 @@ class BusinessDetailModel {
     required this.closeTime,
     required this.images,
     required this.menu,
+    required this.latitude,
+    required this.longitude,
   });
 
   factory BusinessDetailModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +42,8 @@ class BusinessDetailModel {
       closeTime: json['close_time'] ?? '',
       images: imagesRaw is List ? imagesRaw : [],
       menu: menuRaw is List ? menuRaw : [],
+      latitude: double.tryParse(json['latitude'].toString()) ?? 0.0,
+      longitude: double.tryParse(json['longitude'].toString()) ?? 0.0,
     );
   }
 }

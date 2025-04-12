@@ -4,6 +4,8 @@ import 'package:letwork/features/business/cubit/add_business_cubit.dart';
 import 'package:letwork/features/business/view/add_business_screen.dart';
 import 'package:letwork/features/chat/view/chat_list_screen.dart';
 import 'package:letwork/features/favorites/view/favorites_screen.dart';
+import 'package:letwork/features/home/cubit/home_cubit.dart';
+import 'package:letwork/features/home/repository/home_repository.dart';
 import 'package:letwork/features/home/view/home_screen.dart';
 import 'package:letwork/features/profile/view/profile_screen.dart';
 import 'custom_bottom_navbar.dart';
@@ -19,7 +21,10 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    const HomeScreen(),
+    BlocProvider(
+      create: (_) => HomeCubit(HomeRepository()),
+      child: const HomeScreen(),
+    ),
     const ChatScreen(),
     BlocProvider(
       create: (_) => AddBusinessCubit(),

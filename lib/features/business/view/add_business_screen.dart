@@ -98,20 +98,26 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
         return;
       }
 
-      final formData = FormData.fromMap({
-        'user_id': '1',
-        'name': nameController.text,
-        'description': descController.text,
-        'open_time': openController.text,
-        'close_time': closeController.text,
-        'address': addressController.text,
-        'category': selectedCategoryGroup,
-        'sub_category': selectedSubCategory,
-        'is_corporate': isCorporate ? '1' : '0',
-        'latitude': latitude.toString(),
-        'longitude': longitude.toString(),
-        'profile_image': await MultipartFile.fromFile(profileImage!.path),
-      });
+      final formData = FormData();
+
+      formData.fields.addAll([
+        MapEntry('user_id', '1'),
+        MapEntry('name', nameController.text),
+        MapEntry('description', descController.text),
+        MapEntry('open_time', openController.text),
+        MapEntry('close_time', closeController.text),
+        MapEntry('address', addressController.text),
+        MapEntry('category', selectedCategoryGroup!),
+        MapEntry('sub_category', selectedSubCategory!),
+        MapEntry('is_corporate', isCorporate ? '1' : '0'),
+        MapEntry('latitude', latitude.toString()),
+        MapEntry('longitude', longitude.toString()),
+      ]);
+
+      formData.files.add(MapEntry(
+        'profile_image',
+        await MultipartFile.fromFile(profileImage!.path),
+      ));
 
       for (int i = 0; i < detailImages.length; i++) {
         formData.files.add(MapEntry(

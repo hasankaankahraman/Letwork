@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:letwork/core/utils/location_helper.dart'; // Bunu unutma abi
 import 'package:letwork/data/model/business_model.dart';
 import 'package:letwork/features/home/repository/home_repository.dart';
 
@@ -9,13 +10,36 @@ class HomeCubit extends Cubit<HomeState> {
 
   HomeCubit(this.repository) : super(HomeInitial());
 
-  void loadBusinesses() async {
+  void loadBusinesses({String? city, String? category}) async {
     try {
       emit(HomeLoading());
-      final businesses = await repository.fetchBusinesses();
-      emit(HomeLoaded(businesses));
+
+      final allBusinesses = await repository.fetchBusinesses(); // tüm işletmeleri çek
+
+      List<BusinessModel> filtered = [];
+
+      for (final business in allBusinesses) {
+        final detectedCity = await LocationHelper.getCityFromCoordinates(
+          business.latitude,
+          business.longitude,
+        );
+
+        final cityMatch = city == null ||
+            (detectedCity != null &&
+                detectedCity.toLowerCase().contains(city.toLowerCase()));
+
+        final categoryMatch = category == null ||
+            category.isEmpty ||
+            business.subCategory == category;
+
+        if (cityMatch && categoryMatch) {
+          filtered.add(business);
+        }
+      }
+
+      emit(HomeLoaded(filtered));
     } catch (e) {
-      emit(HomeError(e.toString()));
+      emit(HomeError("İşletmeler getirilemedi: $e"));
     }
   }
 }
