@@ -51,9 +51,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Eğer asset ya da font ekleyeceksen aşağı açarsın:
-  # assets:
-  #   - assets/images/
+  assets:
+    - assets/Letwork_Logo.png
+
   # fonts:
   #   - family: CustomFont
   #     fonts:

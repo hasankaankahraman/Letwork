@@ -13,19 +13,27 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       height: 70,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildItem(icon: Icons.home, index: 0),
-          _buildItem(icon: Icons.chat_bubble_outline, index: 1),
-          _buildItem(icon: Icons.add_circle, index: 2),
-          _buildItem(icon: Icons.favorite_border, index: 3),
-          _buildItem(icon: Icons.person_outline, index: 4),
+          _buildItem(icon: Icons.home_rounded, index: 0),
+          _buildItem(icon: Icons.chat_bubble_rounded, index: 1),
+          _buildAddButton(context),
+          _buildItem(icon: Icons.favorite_rounded, index: 3),
+          _buildItem(icon: Icons.person_rounded, index: 4),
         ],
       ),
     );
@@ -36,13 +44,46 @@ class CustomBottomNavBar extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => onTabSelected(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(8),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.all(12),
         child: Icon(
           icon,
-          size: isSelected ? 30 : 24,
-          color: isSelected ? Colors.indigo : Colors.grey,
+          size: 26,
+          color: isSelected ? const Color(0xFFFF0000) : Colors.grey.shade500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onTabSelected(2),
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFFFF0000),
+              const Color(0xFFFF4D4D),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF0000).withOpacity(0.3),
+              blurRadius: 10,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+          size: 30,
         ),
       ),
     );
