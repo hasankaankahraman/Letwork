@@ -8,6 +8,9 @@ import 'package:letwork/features/home/widgets/category_row.dart';
 import 'package:letwork/features/home/widgets/city_selector_modal.dart';
 import 'package:letwork/features/home/widgets/business_list.dart';
 import 'package:letwork/features/home/widgets/section_header.dart';
+import 'package:letwork/features/search/cubit/search_cubit.dart';
+import 'package:letwork/features/search/repository/search_repository.dart';
+import 'package:letwork/features/search/view/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -286,17 +289,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSearchField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TextField(
-        decoration: const InputDecoration(
-          hintText: 'İşletme ara...',
-          prefixIcon: Icon(Icons.search, color: Color(0xFFFF0000)),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 15),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BlocProvider(
+              create: (_) => SearchCubit(SearchRepository()),
+              child: const SearchScreen(),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        child: Row(
+          children: const [
+            Icon(Icons.search, color: Color(0xFFFF0000)),
+            SizedBox(width: 10),
+            Text(
+              'İşletme ara...',
+              style: TextStyle(color: Colors.black54, fontSize: 16),
+            ),
+          ],
         ),
       ),
     );

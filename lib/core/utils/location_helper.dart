@@ -1,21 +1,20 @@
 import 'package:dio/dio.dart';
+import 'package:latlong2/latlong.dart';
 
 class LocationHelper {
+  static final Dio _dio = Dio(BaseOptions(
+    headers: {
+      'User-Agent': 'letwork-app/1.0 (letwork@example.com)',
+    },
+  ));
+
+  /// 📍 Koordinattan şehir adını alır
   static Future<String?> getCityFromCoordinates(double lat, double lon) async {
-    final dio = Dio();
     final url =
         "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$lat&lon=$lon";
 
     try {
-      final response = await dio.get(
-        url,
-        options: Options(
-          headers: {
-            'User-Agent': 'letwork-app/1.0 (letwork@example.com)',
-          },
-        ),
-      );
-
+      final response = await _dio.get(url);
       final data = response.data;
       final address = data['address'];
 
@@ -25,18 +24,41 @@ class LocationHelper {
       final fullCity = [
         address?['city'],
         address?['town'],
+        address?['village'],
         address?['state'],
         address?['province'],
         address?['region'],
-      ]
-          .whereType<String>()
-          .join(" ")
-          .toLowerCase();
+      ].whereType<String>().toSet().join(" ");
 
-      return fullCity;
+      return fullCity.isNotEmpty ? fullCity : null;
     } catch (e) {
-      print("❌ Nominatim hatası: $e");
+      print("❌ [getCityFromCoordinates] Hata: $e");
       return null;
     }
+  }
+
+  /// 🏙 Şehir adından koordinat alır
+  static Future<LatLng?> getCoordinatesFromCity(String city) async {
+    final url = "https://nominatim.openstreetmap.org/search?q=$city&format=json";
+
+    try {
+      final response = await _dio.get(url);
+      final data = response.data;
+
+      if (data is List && data.isNotEmpty) {
+        final first = data.first;
+        final lat = double.tryParse(first['lat'].toString());
+        final lon = double.tryParse(first['lon'].toString());
+
+        if (lat != null && lon != null) {
+          print("✅ [$city] için koordinatlar: ($lat, $lon)");
+          return LatLng(lat, lon);
+        }
+      }
+    } catch (e) {
+      print("❌ [getCoordinatesFromCity] Hata: $e");
+    }
+
+    return null;
   }
 }
