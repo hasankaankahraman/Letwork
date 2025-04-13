@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:letwork/core/utils/location_helper.dart';
 import 'package:letwork/data/services/location_service.dart';
+import 'package:letwork/features/business/view/business_detail_screen.dart';
 import 'package:letwork/features/search/cubit/search_cubit.dart';
 import 'package:letwork/features/search/cubit/search_state.dart';
 import 'package:letwork/data/model/business_model.dart';
@@ -72,17 +72,29 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      backgroundColor: Colors.grey.shade100,
       isScrollControlled: true,
       builder: (_) => Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Wrap(
+          runSpacing: 16,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
             Row(
               children: [
                 CircleAvatar(
-                  radius: 30,
+                  radius: 32,
                   backgroundImage: NetworkImage(
                     business.profileImage.isNotEmpty
                         ? "https://letwork.hasankaan.com/${business.profileImage}"
@@ -92,52 +104,60 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                     debugPrint('🖼️ Profil resmi yüklenemedi');
                   },
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         business.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
-                      Text(business.category),
+                      Text(
+                        business.category,
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
                     ],
                   ),
                 )
               ],
             ),
-            const SizedBox(height: 12),
-            Text(business.description, style: const TextStyle(fontSize: 14)),
-            const SizedBox(height: 12),
+            Text(
+              business.description,
+              style: const TextStyle(fontSize: 15),
+            ),
             Row(
               children: [
-                const Icon(Icons.location_on, color: Colors.red),
-                const SizedBox(width: 6),
+                const Icon(Icons.location_on, color: Color(0xFFFF0000)),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     business.address,
-                    style: const TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 48),
+                backgroundColor: const Color(0xFFFF0000), // 🔴 Kırmızı
+                foregroundColor: Colors.white, // 🤍 İkon ve yazı rengi
+                minimumSize: const Size(double.infinity, 52),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              icon: const Icon(Icons.arrow_forward),
+              icon: const Icon(Icons.arrow_forward, color: Colors.white), // İkon rengi beyaz
               label: const Text("Detaylara Git"),
               onPressed: () {
                 Navigator.pop(context);
-                // Navigator.push(...) // Detay sayfasına yönlendirme yapılabilir
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BusinessDetailScreen(businessId: business.id),
+                  ),
+                );
               },
             )
           ],
@@ -189,7 +209,7 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                 ElevatedButton(
                   onPressed: () => _searchByCity(_cityController.text),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: const Color(0xFFFF0000), // 🔴 Kırmızı
                     foregroundColor: Colors.white,
                   ),
                   child: const Text("Git"),
@@ -205,7 +225,6 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                 initialZoom: 13,
                 onPositionChanged: (pos, hasGesture) {
                   if (_debounce?.isActive ?? false) _debounce?.cancel();
-
                   _debounce = Timer(const Duration(milliseconds: 500), () {
                     final center = pos.center;
                     if (center != null) {
@@ -226,8 +245,7 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                   builder: (context, state) {
                     return MarkerLayer(
                       markers: state.businesses.map((b) {
-                        return
-                          Marker(
+                        return Marker(
                           point: LatLng(b.latitude, b.longitude),
                           width: 20,
                           height: 20,

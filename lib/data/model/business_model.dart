@@ -1,5 +1,6 @@
 class BusinessModel {
   final String id;
+  final String userId; // 👈 EKLENDİ
   final String name;
   final String description;
   final String address;
@@ -14,6 +15,7 @@ class BusinessModel {
 
   BusinessModel({
     required this.id,
+    required this.userId, // 👈 EKLENDİ
     required this.name,
     required this.description,
     required this.address,
@@ -30,6 +32,7 @@ class BusinessModel {
   factory BusinessModel.fromJson(Map<String, dynamic> json) {
     return BusinessModel(
       id: json['id'].toString(),
+      userId: json['user_id'].toString(), // 👈 EKLENDİ
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       address: json['address'] ?? '',
@@ -46,7 +49,6 @@ class BusinessModel {
     );
   }
 
-  /// 🔁 Gerçek görsel linkini döndürür, fallback dahil
   String get profileImageUrl {
     return profileImage.isNotEmpty
         ? "https://letwork.hasankaan.com/$profileImage"

@@ -4,7 +4,13 @@ import 'package:letwork/features/business/view/business_detail_screen.dart';
 
 class BusinessCard extends StatelessWidget {
   final BusinessModel bModel;
-  const BusinessCard({super.key, required this.bModel});
+  final bool showFavoriteButton; // yeni parametre
+
+  const BusinessCard({
+    super.key,
+    required this.bModel,
+    this.showFavoriteButton = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +39,6 @@ class BusinessCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Profil Resmi
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: bModel.profileImage.isNotEmpty
@@ -51,41 +56,27 @@ class BusinessCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-
-            // İsim ve Kategori
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     bModel.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     bModel.category,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                 ],
               ),
             ),
-
-            // Kalp ikonu (favori için)
-            IconButton(
-              icon: const Icon(
-                Icons.favorite_border,
-                color: Color(0xFFFF0000), // Temaya uygun
+            if (showFavoriteButton)
+              IconButton(
+                icon: const Icon(Icons.favorite_border, color: Color(0xFFFF0000)),
+                onPressed: () {},
               ),
-              onPressed: () {
-                // TODO: Favorilere ekleme işlemi burada olacak
-              },
-            ),
           ],
         ),
       ),
