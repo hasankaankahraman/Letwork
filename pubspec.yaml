@@ -55,6 +55,7 @@ flutter:
 
   assets:
     - assets/Letwork_Logo.png
+    - assets/default.png
 
   # fonts:
   #   - family: CustomFont

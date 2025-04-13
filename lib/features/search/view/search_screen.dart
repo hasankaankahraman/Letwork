@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:letwork/features/search/cubit/search_cubit.dart';
 import 'package:letwork/features/search/cubit/search_state.dart';
-import 'package:letwork/features/search/view/search_map_screen.dart'; // Harita ekranı
-import 'package:letwork/features/home/widgets/business_card.dart';   // İşletme kartı
+import 'package:letwork/features/search/view/search_map_screen.dart';
+import 'package:letwork/features/home/widgets/business_card.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -64,28 +64,24 @@ class _SearchScreenState extends State<SearchScreen> {
           Expanded(
             child: BlocBuilder<SearchCubit, SearchState>(
               builder: (context, state) {
-                if (state is SearchLoading) {
+                if (state.isLoading) {
                   return const Center(child: CircularProgressIndicator());
-                } else if (state is SearchLoaded) {
-                  if (state.businesses.isEmpty) {
-                    return const Center(child: Text("Sonuç bulunamadı"));
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 80), // FAB için boşluk
-                    itemCount: state.businesses.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: BusinessCard(bModel: state.businesses[index]),
-                      );
-                    },
-                  );
-                } else if (state is SearchError) {
-                  return Center(child: Text("Hata: ${state.message}"));
-                } else {
-                  return const Center(child: Text("Bir şeyler aramak ister misin?"));
+                } else if (state.error != null) {
+                  return Center(child: Text("Hata: ${state.error}"));
+                } else if (state.businesses.isEmpty) {
+                  return const Center(child: Text("Sonuç bulunamadı"));
                 }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  itemCount: state.businesses.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: BusinessCard(bModel: state.businesses[index]),
+                    );
+                  },
+                );
               },
             ),
           ),

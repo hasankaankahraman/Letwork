@@ -22,12 +22,17 @@ class SearchRepository {
     required double latitude,
     required double longitude,
     double radiusKm = 5.0,
+    String? category,
   }) async {
-    final response = await _dio.get("business/get_business_by_radius.php", queryParameters: {
-      "lat": latitude,
-      "lon": longitude,
-      "radius": radiusKm,
-    });
+    final response = await _dio.get(
+      "business/get_business_by_radius.php",
+      queryParameters: {
+        "lat": latitude,
+        "lon": longitude,
+        "radius": radiusKm,
+        if (category != null) "category": category,
+      },
+    );
 
     if (response.data['status'] == 'success') {
       final List data = response.data['data'];
@@ -36,5 +41,4 @@ class SearchRepository {
       throw Exception(response.data['message']);
     }
   }
-
 }
