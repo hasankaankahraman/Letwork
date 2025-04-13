@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:letwork/features/main_wrapper/main_wrapper_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../home/view/home_screen.dart';
@@ -17,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -45,10 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Ana tema rengi olarak FF0000 (kırmızı) kullanılıyor
+    final themeColor = Color(0xFFFF0000);
+
     return BlocProvider(
       create: (_) => LoginCubit(),
       child: Scaffold(
-        appBar: AppBar(title: const Text("Giriş Yap")),
+        backgroundColor: Colors.white,
         body: BlocConsumer<LoginCubit, LoginState>(
           listener: (context, state) {
             if (state is LoginSuccess) {
@@ -56,26 +61,69 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const HomeScreen(),
+                    builder: (_) => const MainWrapperScreen(),
                   ),
                 );
               });
             } else if (state is LoginError) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: themeColor,
+                ),
               );
             }
           },
           builder: (context, state) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
+            return SafeArea(
               child: Form(
                 key: _formKey,
                 child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   children: [
+                    const SizedBox(height: 40),
+                    // Logo
+                    Center(
+                      child: Image.asset(
+                        'assets/Letwork_Logo.png',
+                        height: 100,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    // Hoşgeldiniz metni
+                    Text(
+                      'Hoş Geldiniz',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: themeColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Hesabınıza giriş yapın',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 40),
+                    // Kullanıcı adı alanı
                     TextFormField(
                       controller: usernameController,
-                      decoration: const InputDecoration(labelText: "Kullanıcı Adı"),
+                      decoration: InputDecoration(
+                        labelText: "Kullanıcı Adı",
+                        prefixIcon: Icon(Icons.person, color: themeColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        floatingLabelStyle: TextStyle(color: themeColor),
+                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Kullanıcı adı giriniz";
@@ -84,10 +132,32 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Şifre alanı
                     TextFormField(
                       controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(labelText: "Şifre"),
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: "Şifre",
+                        prefixIcon: Icon(Icons.lock, color: themeColor),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            color: themeColor,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        floatingLabelStyle: TextStyle(color: themeColor),
+                      ),
                       validator: (value) {
                         if (value == null || value.length < 6) {
                           return "Şifre en az 6 karakter olmalı";
@@ -95,24 +165,73 @@ class _LoginScreenState extends State<LoginScreen> {
                         return null;
                       },
                     ),
+                    // Şifremi unuttum linki
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          // Şifremi unuttum sayfasına yönlendirme
+                        },
+                        child: Text(
+                          "Şifremi Unuttum",
+                          style: TextStyle(color: themeColor),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
+                    // Giriş yap butonu
                     state is LoginLoading
-                        ? const Center(child: CircularProgressIndicator())
+                        ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFFF0000),
+                      ),
+                    )
                         : ElevatedButton(
                       onPressed: () => _login(context),
-                      child: const Text("Giriş Yap"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: themeColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        "Giriş Yap",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SignupScreen(),
+                    const SizedBox(height: 24),
+                    // Kayıt ol linki
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Hesabınız yok mu?",
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const SignupScreen(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Kayıt olun",
+                            style: TextStyle(
+                              color: themeColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        );
-                      },
-                      child: const Text("Hesabınız yok mu? Kayıt olun"),
+                        ),
+                      ],
                     ),
                   ],
                 ),
