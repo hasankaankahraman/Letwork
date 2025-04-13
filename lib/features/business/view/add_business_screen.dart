@@ -23,6 +23,7 @@ class AddBusinessScreen extends StatefulWidget {
 
 class _AddBusinessScreenState extends State<AddBusinessScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
 
   final nameController = TextEditingController();
   final descController = TextEditingController();
@@ -38,6 +39,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
   String? address;
 
   bool isCorporate = false;
+  bool _isLoading = false;
 
   String? selectedCategoryGroup;
   String? selectedSubCategory;
@@ -47,35 +49,88 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
 
   final ImagePicker _picker = ImagePicker();
 
+  final Map<String, bool> _formProgress = {
+    'businessInfo': false,
+    'location': false,
+    'images': false,
+    'services': false,
+  };
+
   @override
   void initState() {
     super.initState();
     _fetchCategories();
   }
 
+  @override
+  void dispose() {
+    nameController.dispose();
+    descController.dispose();
+    openController.dispose();
+    closeController.dispose();
+    addressController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchCategories() async {
+    setState(() => _isLoading = true);
     try {
       final repo = CategoryRepository();
       final result = await repo.getCategories();
-      setState(() => categoryGroups = List<Map<String, dynamic>>.from(result));
+      setState(() {
+        categoryGroups = List<Map<String, dynamic>>.from(result);
+        _isLoading = false;
+      });
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Kategoriler alınamadı")),
-      );
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Kategoriler alınamadı"),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
     }
+  }
+
+  void _updateProgress() {
+    setState(() {
+      _formProgress['businessInfo'] = nameController.text.isNotEmpty &&
+          descController.text.isNotEmpty &&
+          openController.text.isNotEmpty &&
+          closeController.text.isNotEmpty &&
+          selectedCategoryGroup != null &&
+          selectedSubCategory != null;
+
+      _formProgress['location'] = latitude != null && longitude != null;
+
+      _formProgress['images'] = profileImage != null && detailImages.length >= 3;
+
+      _formProgress['services'] = services.isNotEmpty &&
+          !services.any((s) => s['name']!.isEmpty || s['price']!.isEmpty);
+    });
   }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      if (profileImage == null ||
-          detailImages.length < 3 ||
-          selectedCategoryGroup == null ||
-          selectedSubCategory == null ||
-          latitude == null ||
-          longitude == null ||
-          services.any((s) => s['name']!.isEmpty || s['price']!.isEmpty)) {
+      _updateProgress();
+
+      if (!_formProgress.values.every((completed) => completed)) {
+        final firstIncomplete = _formProgress.entries
+            .firstWhere((entry) => !entry.value, orElse: () => const MapEntry('', true));
+
+        String message = switch (firstIncomplete.key) {
+          'businessInfo' => "Lütfen işletme bilgilerini eksiksiz doldurun",
+          'location' => "Lütfen işletme konumunu belirleyin",
+          'images' => "Lütfen profil fotoğrafı ve en az 3 detay fotoğrafı ekleyin",
+          'services' => "Lütfen en az bir hizmet ekleyin ve fiyatlandırın",
+          _ => "Lütfen tüm alanları eksiksiz doldurun",
+        };
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Lütfen tüm alanları eksiksiz doldurun.")),
+          SnackBar(content: Text(message), backgroundColor: Colors.red.shade700),
         );
         return;
       }
@@ -115,13 +170,21 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _updateProgress();
+
     return Scaffold(
-      appBar: AppBar(title: const Text("İşletme Ekle")),
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Text("İşletme Ekle", style: TextStyle(fontWeight: FontWeight.bold)),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        centerTitle: true,
+      ),
       body: BlocConsumer<AddBusinessCubit, AddBusinessState>(
         listener: (context, state) {
           if (state is AddBusinessSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
+              SnackBar(content: Text(state.message), backgroundColor: Colors.green.shade700),
             );
             Navigator.pushReplacement(
               context,
@@ -131,18 +194,28 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
             );
           } else if (state is AddBusinessError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
+              SnackBar(content: Text(state.message), backgroundColor: Colors.red.shade700),
             );
           }
         },
         builder: (context, state) {
+          if (_isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            controller: _scrollController,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🧾 İşletme Bilgileri
+                  // 📊 İlerleme göstergesi
+                  _buildProgressSection(),
+
+                  const SizedBox(height: 16),
+
                   PostBusinessInfoSection(
                     nameController: nameController,
                     descController: descController,
@@ -165,8 +238,6 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                   ),
 
                   const SizedBox(height: 16),
-
-                  // 📍 Konum ve Adres
                   PostMapSection(
                     latitude: latitude,
                     longitude: longitude,
@@ -180,10 +251,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                     },
                   ),
 
-
                   const SizedBox(height: 16),
-
-                  // 📸 Görseller
                   PostImagesSection(
                     profileImage: profileImage,
                     detailImages: detailImages,
@@ -193,8 +261,6 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                   ),
 
                   const SizedBox(height: 16),
-
-                  // 🧾 Hizmetler
                   PostMenuSection(
                     services: services,
                     onAddService: () => setState(() => services.add({"name": "", "price": ""})),
@@ -205,14 +271,40 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                   ),
 
                   const SizedBox(height: 24),
-
-                  // Kaydet
-                  ElevatedButton.icon(
-                    onPressed: _submit,
-                    icon: const Icon(Icons.save),
-                    label: state is AddBusinessLoading
-                        ? const CircularProgressIndicator()
-                        : const Text("İşletmeyi Kaydet"),
+                  ElevatedButton(
+                    onPressed: state is AddBusinessLoading ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: state is AddBusinessLoading
+                        ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Text("İşletme Kaydediliyor...", style: TextStyle(fontSize: 16)),
+                      ],
+                    )
+                        : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white),
+                        SizedBox(width: 12),
+                        Text("İşletmeyi Kaydet", style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -220,6 +312,76 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildProgressSection() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 8)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("İşletme Ekleme Durumu", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          LinearProgressIndicator(
+            value: _formProgress.values.where((completed) => completed).length / _formProgress.length,
+            backgroundColor: Colors.grey.shade200,
+            color: Colors.blue.shade700,
+            minHeight: 8,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildProgressIndicator("İşletme\nBilgileri", Icons.business, _formProgress['businessInfo']!),
+              _buildProgressIndicator("Konum", Icons.location_on, _formProgress['location']!),
+              _buildProgressIndicator("Fotoğraflar", Icons.image, _formProgress['images']!),
+              _buildProgressIndicator("Hizmetler", Icons.room_service, _formProgress['services']!),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator(String label, IconData icon, bool completed) {
+    return Column(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: completed ? Colors.green.shade50 : Colors.grey.shade100,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: completed ? Colors.green : Colors.grey.shade300,
+              width: 2,
+            ),
+          ),
+          child: Icon(
+            completed ? Icons.check : icon,
+            color: completed ? Colors.green : Colors.grey.shade500,
+            size: 24,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            color: completed ? Colors.green.shade700 : Colors.grey.shade700,
+            fontWeight: completed ? FontWeight.w500 : FontWeight.normal,
+          ),
+        ),
+      ],
     );
   }
 }
