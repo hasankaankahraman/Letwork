@@ -30,6 +30,7 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
         title: const Text("Değerlendirmeler"),
         centerTitle: true,
         elevation: 0,
+        backgroundColor: const Color(0xFFFF0000), // Kırmızı tema
       ),
       body: BlocBuilder<ReviewCubit, ReviewState>(
         builder: (context, state) {
@@ -65,6 +66,7 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      backgroundColor: const Color(0xFFFF0000), // Kırmızı tema
                     ),
                   ),
                 ],
@@ -124,7 +126,7 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
                           average.toStringAsFixed(1),
                           style: theme.textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
+                            color: const Color(0xFFFF0000), // Kırmızı tema
                           ),
                         ),
                         const SizedBox(height: 8),

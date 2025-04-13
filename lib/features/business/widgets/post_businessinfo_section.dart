@@ -53,7 +53,6 @@ class PostBusinessInfoSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // İşletme Adı
           _buildTextFormField(
             controller: nameController,
             labelText: "İşletme Adı",
@@ -62,8 +61,6 @@ class PostBusinessInfoSection extends StatelessWidget {
             validator: (val) => val == null || val.isEmpty ? "Zorunlu" : null,
           ),
           const SizedBox(height: 16),
-
-          // Açıklama
           _buildTextFormField(
             controller: descController,
             labelText: "Açıklama",
@@ -73,8 +70,6 @@ class PostBusinessInfoSection extends StatelessWidget {
             validator: (val) => val == null || val.isEmpty ? "Zorunlu" : null,
           ),
           const SizedBox(height: 24),
-
-          // Çalışma Saatleri Başlığı
           const Padding(
             padding: EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
@@ -86,8 +81,6 @@ class PostBusinessInfoSection extends StatelessWidget {
               ),
             ),
           ),
-
-          // Açılış ve Kapanış Saati
           Row(
             children: [
               Expanded(
@@ -112,8 +105,6 @@ class PostBusinessInfoSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-
-          // İşletme Türü (Kurumsal / Bireysel)
           const Padding(
             padding: EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
@@ -127,8 +118,6 @@ class PostBusinessInfoSection extends StatelessWidget {
           ),
           _buildBusinessTypeSelector(),
           const SizedBox(height: 24),
-
-          // Kategori Seçimleri Başlığı
           const Padding(
             padding: EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
@@ -140,8 +129,6 @@ class PostBusinessInfoSection extends StatelessWidget {
               ),
             ),
           ),
-
-          // Kategori Seçimi
           _buildDropdownField(
             value: selectedCategoryGroup,
             labelText: "Kategori",
@@ -157,8 +144,6 @@ class PostBusinessInfoSection extends StatelessWidget {
             validator: (val) => val == null ? "Kategori seçin" : null,
           ),
           const SizedBox(height: 16),
-
-          // Alt Kategori Seçimi
           _buildDropdownField(
             value: selectedSubCategory,
             labelText: "Alt Kategori",
@@ -193,7 +178,7 @@ class PostBusinessInfoSection extends StatelessWidget {
         labelText: labelText,
         hintText: hintText,
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.blue.shade700) : null,
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Color(0xFFFF0000)) : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -204,7 +189,7 @@ class PostBusinessInfoSection extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+          borderSide: BorderSide(color: Color(0xFFFF0000), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -232,8 +217,8 @@ class PostBusinessInfoSection extends StatelessWidget {
             labelText: labelText,
             hintText: hintText,
             floatingLabelBehavior: FloatingLabelBehavior.always,
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.blue.shade700) : null,
-            suffixIcon: const Icon(Icons.arrow_drop_down, color: Colors.blue),
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Color(0xFFFF0000)) : null,
+            suffixIcon: const Icon(Icons.arrow_drop_down, color: Color(0xFFFF0000)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -244,7 +229,7 @@ class PostBusinessInfoSection extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+              borderSide: BorderSide(color: Color(0xFFFF0000), width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
@@ -255,68 +240,37 @@ class PostBusinessInfoSection extends StatelessWidget {
   }
 
   void _showTimePicker(BuildContext context, TextEditingController controller) {
-    // Başlangıç zamanını oluşturalım
     DateTime initialTime = DateTime.now();
-
-    // Dakikayı minuteInterval değerine (5) göre ayarlayalım
-    // Örneğin, dakika 13 ise en yakın 5'in katı 15'e yuvarlanacak
     int minute = initialTime.minute;
     int roundedMinute = (minute / 5).round() * 5;
-    // 55'ten büyük olma ihtimaline karşı kontrol
     if (roundedMinute == 60) {
-      initialTime = DateTime(
-          initialTime.year,
-          initialTime.month,
-          initialTime.day,
-          initialTime.hour + 1,
-          0
-      );
+      initialTime = DateTime(initialTime.year, initialTime.month, initialTime.day, initialTime.hour + 1, 0);
     } else {
-      initialTime = DateTime(
-          initialTime.year,
-          initialTime.month,
-          initialTime.day,
-          initialTime.hour,
-          roundedMinute
-      );
+      initialTime = DateTime(initialTime.year, initialTime.month, initialTime.day, initialTime.hour, roundedMinute);
     }
 
-    // Eğer controller'da halihazırda bir değer varsa onu kullanalım
     if (controller.text.isNotEmpty) {
       try {
         List<String> timeParts = controller.text.split(':');
         if (timeParts.length == 2) {
           int hour = int.parse(timeParts[0]);
           int minute = int.parse(timeParts[1]);
-          // Dakikayı 5'in katı olarak ayarlayalım
           minute = (minute / 5).round() * 5;
           if (minute == 60) {
             hour = (hour + 1) % 24;
             minute = 0;
           }
-          initialTime = DateTime(
-              initialTime.year,
-              initialTime.month,
-              initialTime.day,
-              hour,
-              minute
-          );
+          initialTime = DateTime(initialTime.year, initialTime.month, initialTime.day, hour, minute);
         }
-      } catch (e) {
-        // Parse hatası olursa varsayılan zamanı kullan
-        print("Saat ayrıştırma hatası: $e");
-      }
+      } catch (_) {}
     }
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       backgroundColor: Colors.white,
       builder: (BuildContext context) {
         DateTime selectedTime = initialTime;
-
         return Container(
           height: 300,
           padding: const EdgeInsets.all(16),
@@ -329,12 +283,12 @@ class PostBusinessInfoSection extends StatelessWidget {
                     onPressed: () => Navigator.pop(context),
                     child: const Text("İptal", style: TextStyle(color: Colors.red)),
                   ),
-                  Text(
+                  const Text(
                     "Saat Seçin",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade700,
+                      color: Color(0xFFFF0000),
                     ),
                   ),
                   TextButton(
@@ -344,7 +298,7 @@ class PostBusinessInfoSection extends StatelessWidget {
                       controller.text = "$hour:$minute";
                       Navigator.pop(context);
                     },
-                    child: const Text("Tamam", style: TextStyle(color: Colors.blue)),
+                    child: const Text("Tamam", style: TextStyle(color: Color(0xFFFF0000))),
                   ),
                 ],
               ),
@@ -353,10 +307,7 @@ class PostBusinessInfoSection extends StatelessWidget {
                 child: CupertinoTheme(
                   data: const CupertinoThemeData(
                     textTheme: CupertinoTextThemeData(
-                      pickerTextStyle: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 22,
-                      ),
+                      pickerTextStyle: TextStyle(color: Colors.black87, fontSize: 22),
                     ),
                   ),
                   child: CupertinoDatePicker(
@@ -376,6 +327,7 @@ class PostBusinessInfoSection extends StatelessWidget {
       },
     );
   }
+
   Widget _buildBusinessTypeSelector() {
     return Container(
       decoration: BoxDecoration(
@@ -386,45 +338,29 @@ class PostBusinessInfoSection extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: ElevatedButton(
-                onPressed: () => onCorporateChanged(false),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: !isCorporate ? Colors.blue.shade700 : Colors.transparent,
-                  foregroundColor: !isCorporate ? Colors.white : Colors.grey.shade700,
-                  elevation: !isCorporate ? 2 : 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text(
-                  "Bireysel",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+            child: ElevatedButton(
+              onPressed: () => onCorporateChanged(false),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: !isCorporate ? Color(0xFFFF0000) : Colors.transparent,
+                foregroundColor: !isCorporate ? Colors.white : Colors.grey.shade700,
+                elevation: !isCorporate ? 2 : 0,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
+              child: const Text("Bireysel", style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
           Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: ElevatedButton(
-                onPressed: () => onCorporateChanged(true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isCorporate ? Colors.blue.shade700 : Colors.transparent,
-                  foregroundColor: isCorporate ? Colors.white : Colors.grey.shade700,
-                  elevation: isCorporate ? 2 : 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text(
-                  "Kurumsal",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+            child: ElevatedButton(
+              onPressed: () => onCorporateChanged(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isCorporate ? Color(0xFFFF0000) : Colors.transparent,
+                foregroundColor: isCorporate ? Colors.white : Colors.grey.shade700,
+                elevation: isCorporate ? 2 : 0,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
+              child: const Text("Kurumsal", style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -450,7 +386,7 @@ class PostBusinessInfoSection extends StatelessWidget {
         labelText: labelText,
         hintText: hintText,
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.blue.shade700) : null,
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Color(0xFFFF0000)) : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -461,11 +397,11 @@ class PostBusinessInfoSection extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+          borderSide: BorderSide(color: Color(0xFFFF0000), width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      icon: const Icon(Icons.arrow_drop_down, color: Colors.blue),
+      icon: const Icon(Icons.arrow_drop_down, color: Color(0xFFFF0000)),
       isExpanded: true,
       dropdownColor: Colors.white,
     );

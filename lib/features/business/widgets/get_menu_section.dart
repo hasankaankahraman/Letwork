@@ -8,22 +8,27 @@ class MenuSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        /// 🔴 Başlık
         Row(
-          children: [
-            Icon(Icons.restaurant_menu, color: theme.colorScheme.primary),
-            const SizedBox(width: 8),
+          children: const [
+            Icon(Icons.restaurant_menu, color: Color(0xFFFF0000)),
+            SizedBox(width: 8),
             Text(
               "Menü",
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.black87,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 12),
+
+        /// 🔴 Menü Listesi
         ListView.separated(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
@@ -39,19 +44,24 @@ class MenuSection extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
-                    const Icon(Icons.fastfood, color: Colors.orange),
+                    const Icon(Icons.fastfood, color: Color(0xFFFF0000)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         item['name'],
-                        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
                       ),
                     ),
                     Text(
                       "${item['price']}₺",
-                      style: theme.textTheme.bodyLarge?.copyWith(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.green.shade700,
+                        fontSize: 16,
+                        color: Color(0xFFFF0000),
                       ),
                     ),
                   ],

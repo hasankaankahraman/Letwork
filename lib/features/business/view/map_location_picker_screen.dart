@@ -184,7 +184,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                           height: 42,
                           width: 42,
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade700.withOpacity(0.9),
+                            color: Color(0xFFFF0000).withOpacity(0.9),
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: Colors.white,
@@ -201,7 +201,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                           width: 12,
                           height: 6,
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade700.withOpacity(0.9),
+                            color: Color(0xFFFF0000).withOpacity(0.9),
                             borderRadius: const BorderRadius.vertical(
                               bottom: Radius.circular(10),
                             ),
@@ -298,7 +298,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                           children: [
                             Icon(
                               Icons.location_on,
-                              color: Colors.blue.shade700,
+                              color: Color(0xFFFF0000),
                               size: 20,
                             ),
                             const SizedBox(width: 8),
@@ -379,7 +379,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                   ElevatedButton(
                     onPressed: _selectLocation,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
+                      backgroundColor: Color(0xFFFF0000),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -409,79 +409,6 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
               ),
             ),
           ),
-
-          // Center alignment guide
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Center(
-              child: Container(
-                width: 2,
-                height: 14,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Loading indicator
-          if (_isSearching)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 70,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade700,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        "Konum bilgisi alınıyor...",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );

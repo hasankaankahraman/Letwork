@@ -52,7 +52,6 @@ class PostImagesSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Başlık
           const Padding(
             padding: EdgeInsets.only(bottom: 16),
             child: Text(
@@ -65,7 +64,6 @@ class PostImagesSection extends StatelessWidget {
             ),
           ),
 
-          // Profil Fotoğrafı Bölümü
           const Padding(
             padding: EdgeInsets.only(bottom: 8),
             child: Text(
@@ -92,16 +90,16 @@ class PostImagesSection extends StatelessWidget {
                   ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.add_photo_alternate_outlined,
                     size: 48,
-                    color: Colors.blue.shade700,
+                    color: Color(0xFFFF0000),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     "Profil Fotoğrafı Ekle",
                     style: TextStyle(
-                      color: Colors.blue.shade700,
+                      color: Color(0xFFFF0000),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -134,7 +132,7 @@ class PostImagesSection extends StatelessWidget {
                       onTap: () => onPickProfile(File("")),
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.black54,
                           shape: BoxShape.circle,
                         ),
@@ -153,8 +151,8 @@ class PostImagesSection extends StatelessWidget {
                       onTap: _pickProfileImage,
                       child: Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade700,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFF0000),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -172,7 +170,6 @@ class PostImagesSection extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Detay Fotoğrafları Bölümü
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -197,7 +194,6 @@ class PostImagesSection extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // Detay Fotoğrafları Grid
           if (detailImages.isEmpty)
             GestureDetector(
               onTap: _pickDetailImages,
@@ -207,21 +203,21 @@ class PostImagesSection extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: const [
                     Icon(
                       Icons.add_photo_alternate_outlined,
                       size: 36,
-                      color: Colors.blue.shade700,
+                      color: Color(0xFFFF0000),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       "Detay Fotoğrafları Ekle",
                       style: TextStyle(
-                        color: Colors.blue.shade700,
+                        color: Color(0xFFFF0000),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -278,11 +274,14 @@ class PostImagesSection extends StatelessWidget {
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: _pickDetailImages,
-                  icon: const Icon(Icons.add_photo_alternate),
-                  label: const Text("Daha Fazla Fotoğraf Ekle"),
+                  icon: const Icon(Icons.add_photo_alternate, color: Color(0xFFFF0000)),
+                  label: const Text(
+                    "Daha Fazla Fotoğraf Ekle",
+                    style: TextStyle(color: Color(0xFFFF0000)),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    side: BorderSide(color: Colors.blue.shade700),
+                    side: const BorderSide(color: Color(0xFFFF0000)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

@@ -41,6 +41,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
         title: const Text("Değerlendirme Ekle"),
         elevation: 0,
         centerTitle: true,
+        backgroundColor: const Color(0xFFFF0000), // Kırmızı tema
       ),
       body: BlocConsumer<ReviewCubit, ReviewState>(
         listener: (context, state) {
@@ -76,12 +77,15 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                       "İşletmeyi değerlendirin",
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: const Color(0xFFFF0000), // Kırmızı tema
                       ),
                     ),
                     const SizedBox(height: 24),
                     Text(
                       "Puanınız",
-                      style: theme.textTheme.titleMedium,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFFFF0000), // Kırmızı tema
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Container(
@@ -111,7 +115,9 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                     const SizedBox(height: 24),
                     Text(
                       "Yorumunuz",
-                      style: theme.textTheme.titleMedium,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFFFF0000), // Kırmızı tema
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -120,11 +126,11 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                         hintText: "Deneyiminizi paylaşın...",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: theme.colorScheme.primary.withOpacity(0.3)),
+                          borderSide: BorderSide(color: const Color(0xFFFF0000).withOpacity(0.3)), // Kırmızı tema
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+                          borderSide: BorderSide(color: const Color(0xFFFF0000), width: 2), // Kırmızı tema
                         ),
                         filled: true,
                         fillColor: Colors.grey.shade50,
@@ -141,7 +147,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                       child: ElevatedButton(
                         onPressed: state is ReviewLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
+                          backgroundColor: const Color(0xFFFF0000), // Kırmızı tema
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

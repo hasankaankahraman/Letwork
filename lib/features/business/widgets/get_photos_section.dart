@@ -20,14 +20,23 @@ class PhotosSection extends StatelessWidget {
           children: [
             const Text(
               "Fotoğraflar",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFFF0000), // Kırmızı tema
+              ),
             ),
             if (images.length > 3)
               TextButton(
                 onPressed: () {
                   _showAllPhotos(context, images);
                 },
-                child: const Text("Tümünü Gör"),
+                child: const Text(
+                  "Tümünü Gör",
+                  style: TextStyle(
+                    color: Color(0xFFFF0000), // Kırmızı tema
+                  ),
+                ),
               ),
           ],
         ),

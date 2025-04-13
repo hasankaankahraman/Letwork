@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:letwork/data/model/business_detail_model.dart';
@@ -86,7 +90,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: const Color(0xFFFF0000), // Kırmızı tema
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           business.name,
@@ -112,7 +116,10 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Verilen Hizmetler", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text(
+          "Verilen Hizmetler",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFFF0000)), // Kırmızı tema
+        ),
         const SizedBox(height: 12),
         ListView.builder(
           shrinkWrap: true,
@@ -122,8 +129,14 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
             final service = business.services[index];
             return ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(service['service_name']),
-              trailing: Text("${service['price']}₺", style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(service['service_name'], style: const TextStyle(color: Colors.black87)),
+              trailing: Text(
+                "${service['price']}₺",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFFF0000), // Kırmızı tema
+                ),
+              ),
             );
           },
         ),

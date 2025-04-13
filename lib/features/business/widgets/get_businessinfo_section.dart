@@ -16,45 +16,65 @@ class BusinessInfoSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🔹 Kategori > Alt Kategori
+            /// 🔴 Kategori > Alt Kategori
             Text(
               "${business.category} > ${business.subCategory}",
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
-                color: Colors.black87,
+                color: Color(0xFFFF0000), // kırmızı tema
               ),
             ),
 
             const SizedBox(height: 12),
 
-            /// 🔹 Açıklama
+            /// 🔴 Açıklama Başlığı
             const Text(
               "Açıklama",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Color(0xFFFF0000), // kırmızı tema
+              ),
             ),
             const SizedBox(height: 4),
-            Text(business.description),
+            Text(
+              business.description,
+              style: const TextStyle(color: Colors.black87),
+            ),
 
             const Divider(height: 24),
 
-            /// 🔹 Adres
+            /// 🔴 Adres
             Row(
-              children: [
-                const Icon(Icons.location_on, color: Colors.red),
-                const SizedBox(width: 8),
-                Expanded(child: Text(business.address)),
+              children: const [
+                Icon(Icons.location_on, color: Color(0xFFFF0000)),
+                SizedBox(width: 8),
               ],
             ),
+            Padding(
+              padding: const EdgeInsets.only(left: 32),
+              child: Text(
+                business.address,
+                style: const TextStyle(color: Colors.black87),
+              ),
+            ),
+
             const SizedBox(height: 8),
 
-            /// 🔹 Açılış / Kapanış
+            /// 🔴 Açılış / Kapanış Saatleri
             Row(
-              children: [
-                const Icon(Icons.access_time, color: Colors.orange),
-                const SizedBox(width: 8),
-                Text("${business.openTime} - ${business.closeTime}"),
+              children: const [
+                Icon(Icons.access_time, color: Color(0xFFFF0000)),
+                SizedBox(width: 8),
               ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 32),
+              child: Text(
+                "${business.openTime} - ${business.closeTime}",
+                style: const TextStyle(color: Colors.black87),
+              ),
             ),
           ],
         ),

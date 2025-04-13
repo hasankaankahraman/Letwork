@@ -33,7 +33,6 @@ class PostMenuSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title
           const Padding(
             padding: EdgeInsets.only(bottom: 16),
             child: Text(
@@ -46,7 +45,6 @@ class PostMenuSection extends StatelessWidget {
             ),
           ),
 
-          // Service Description
           if (services.isEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -59,7 +57,6 @@ class PostMenuSection extends StatelessWidget {
               ),
             ),
 
-          // Service List
           ...services.asMap().entries.map((entry) {
             final index = entry.key;
             final item = entry.value;
@@ -78,15 +75,15 @@ class PostMenuSection extends StatelessWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFFEEEE),
                           shape: BoxShape.circle,
                         ),
                         child: Text(
                           "${index + 1}",
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade700,
+                            color: Color(0xFFFF0000),
                           ),
                         ),
                       ),
@@ -136,9 +133,9 @@ class PostMenuSection extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(color: Colors.grey.shade300),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                            focusedBorder: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(10)),
+                              borderSide: BorderSide(color: Color(0xFFFF0000), width: 2),
                             ),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                             filled: true,
@@ -164,9 +161,9 @@ class PostMenuSection extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(color: Colors.grey.shade300),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                            focusedBorder: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(10)),
+                              borderSide: BorderSide(color: Color(0xFFFF0000), width: 2),
                             ),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                             filled: true,
@@ -187,8 +184,8 @@ class PostMenuSection extends StatelessWidget {
             );
           }),
 
-          // Add Service Button
           const SizedBox(height: 16),
+
           InkWell(
             onTap: onAddService,
             child: Container(
@@ -204,19 +201,19 @@ class PostMenuSection extends StatelessWidget {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: const [
                   Icon(
                     Icons.add_circle_outline,
                     size: 24,
-                    color: Colors.blue.shade700,
+                    color: Color(0xFFFF0000),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Text(
                     "Yeni Hizmet Ekle",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: Colors.blue.shade700,
+                      color: Color(0xFFFF0000),
                     ),
                   ),
                 ],

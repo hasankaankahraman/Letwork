@@ -31,7 +31,6 @@ class ReviewSection extends StatelessWidget {
 
               final currentUserId = snapshot.data!;
 
-              // Bu kısımda firstWhere yerine firstWhereOrNull mantığını uyguluyoruz
               final userReview = reviews.where(
                       (r) => r.userId.toString() == currentUserId.toString()
               ).firstOrNull; // firstOrNull Flutter 2.17+ ile kullanılabilir
@@ -84,20 +83,21 @@ class ReviewSection extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
-            "Yorumlar",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.2,
-            )
+          "Yorumlar",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.2,
+            color: Color(0xFFFF0000), // Kırmızı tema
+          ),
         ),
         if (reviews.isNotEmpty)
           TextButton.icon(
             onPressed: () => _navigateToReviewList(context),
-            icon: const Icon(Icons.chevron_right, size: 18),
+            icon: const Icon(Icons.chevron_right, size: 18, color: Color(0xFFFF0000)),
             label: Text(
               "${reviews.length} Yorum",
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFFFF0000)),
             ),
             style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
           )
@@ -111,7 +111,7 @@ class ReviewSection extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.deepPurple.shade50.withOpacity(0.5),
+          color: Colors.red.shade50.withOpacity(0.5), // Kırmızı tema
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -119,7 +119,7 @@ class ReviewSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.deepPurple.shade100,
+                color: Colors.red.shade100,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -175,10 +175,10 @@ class ReviewSection extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8, top: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.deepPurple.shade100, width: 1.5),
+        side: BorderSide(color: Colors.red.shade100, width: 1.5), // Kırmızı tema
       ),
       elevation: 0,
-      color: Colors.deepPurple.withOpacity(0.03),
+      color: Colors.red.withOpacity(0.03),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -192,10 +192,10 @@ class ReviewSection extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.deepPurple.shade100,
+                        color: Colors.red.shade100,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.person, color: Colors.deepPurple),
+                      child: const Icon(Icons.person, color: Colors.red),
                     ),
                     const SizedBox(width: 12),
                     const Text(
@@ -215,7 +215,7 @@ class ReviewSection extends StatelessWidget {
               icon: const Icon(Icons.edit_outlined, size: 18),
               label: const Text("Yorumu Güncelle"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
+                backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -237,7 +237,7 @@ class ReviewSection extends StatelessWidget {
         icon: const Icon(Icons.rate_review, size: 20),
         label: const Text("Yorum Yap", style: TextStyle(fontSize: 16)),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: Colors.red,
           foregroundColor: Colors.white,
           elevation: 2,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

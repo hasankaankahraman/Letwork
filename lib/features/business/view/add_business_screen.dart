@@ -274,7 +274,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                   ElevatedButton(
                     onPressed: state is AddBusinessLoading ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
+                      backgroundColor: Color(0xFFFF0000),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -332,7 +332,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
           LinearProgressIndicator(
             value: _formProgress.values.where((completed) => completed).length / _formProgress.length,
             backgroundColor: Colors.grey.shade200,
-            color: Colors.blue.shade700,
+            color: Color(0xFFFF0000),
             minHeight: 8,
             borderRadius: BorderRadius.circular(4),
           ),

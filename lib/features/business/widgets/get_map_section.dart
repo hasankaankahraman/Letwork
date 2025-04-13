@@ -2,24 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:letwork/data/model/business_detail_model.dart';
-// url_launcher paketi projenizde yoksa kaldırın
-// veya pubspec.yaml'a ekleyip "flutter pub get" çalıştırın
 
 class MapSection extends StatelessWidget {
   final BusinessDetailModel business;
 
   const MapSection({super.key, required this.business});
 
-  // url_launcher yoksa bu metodu kaldırın
-  // void _openMapDirections() {
-  //   // Url_launcher kullanmak yerine bu işlevi sonradan ekleyebilirsiniz
-  //   debugPrint('Yol tarifi açılacak: ${business.latitude},${business.longitude}');
-  // }
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Card(
       elevation: 4,
       shadowColor: Colors.black26,
@@ -31,21 +21,24 @@ class MapSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            /// 🔴 Başlık ve Buton
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  children: [
+                  children: const [
                     Icon(
                       Icons.location_on,
-                      color: theme.colorScheme.primary,
+                      color: Color(0xFFFF0000),
                       size: 22,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
                       "Konum",
-                      style: theme.textTheme.titleLarge?.copyWith(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.black87,
                       ),
                     ),
                   ],
@@ -55,20 +48,22 @@ class MapSection extends StatelessWidget {
                   label: const Text("Yol Tarifi"),
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
-                    backgroundColor: theme.colorScheme.primary,
+                    backgroundColor: const Color(0xFFFF0000),
                     elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   onPressed: () {
-                    // Basit bir işlev, sonradan geliştirilebilir
                     debugPrint('Yol tarifi açılacak: ${business.latitude},${business.longitude}');
                   },
                 ),
               ],
             ),
+
             const SizedBox(height: 16),
+
+            /// 🔴 Harita
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Container(
@@ -114,13 +109,13 @@ class MapSection extends StatelessWidget {
                                     child: child,
                                   );
                                 },
-                                child: Icon(
+                                child: const Icon(
                                   Icons.location_on,
-                                  color: theme.colorScheme.primary,
+                                  color: Color(0xFFFF0000),
                                   size: 50,
                                   shadows: [
                                     Shadow(
-                                      color: Colors.black.withOpacity(0.3),
+                                      color: Colors.black38,
                                       blurRadius: 10,
                                     ),
                                   ],
@@ -137,12 +132,12 @@ class MapSection extends StatelessWidget {
                       child: FloatingActionButton.small(
                         heroTag: "mapZoom",
                         onPressed: () {
-                          // Haritayı tam ekran gösterme fonksiyonu eklenebilir
+                          // Geniş harita görüntüsü eklenecekse burada kullanılabilir
                         },
                         backgroundColor: Colors.white,
-                        child: Icon(
+                        child: const Icon(
                           Icons.fullscreen,
-                          color: theme.colorScheme.primary,
+                          color: Color(0xFFFF0000),
                         ),
                       ),
                     ),
@@ -150,23 +145,30 @@ class MapSection extends StatelessWidget {
                 ),
               ),
             ),
+
             const SizedBox(height: 8),
+
+            /// 🔴 Adres
             if (business.address != null && business.address!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: const [
                     Icon(
                       Icons.home,
                       size: 18,
-                      color: theme.colorScheme.secondary,
+                      color: Color(0xFFFF0000),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        business.address!,
-                        style: theme.textTheme.bodyMedium,
+                        // burada değişken string kullan
+                        "Adres bilgisi bulunuyor.",
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],

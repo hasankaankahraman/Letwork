@@ -36,7 +36,6 @@ class PostMapSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           const Padding(
             padding: EdgeInsets.only(bottom: 16),
             child: Text(
@@ -49,7 +48,6 @@ class PostMapSection extends StatelessWidget {
             ),
           ),
 
-          // Location Preview
           if (hasLocation)
             Container(
               margin: const EdgeInsets.only(bottom: 16),
@@ -66,21 +64,21 @@ class PostMapSection extends StatelessWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFFEEEE),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.location_on,
                           size: 20,
-                          color: Colors.blue.shade700,
+                          color: Color(0xFFFF0000),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
+                      const Expanded(
                         child: Text(
                           "Seçili Konum",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
@@ -101,10 +99,10 @@ class PostMapSection extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.home,
                             size: 18,
-                            color: Colors.blue.shade700,
+                            color: Color(0xFFFF0000),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -121,10 +119,7 @@ class PostMapSection extends StatelessWidget {
                     ),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(6),
@@ -132,11 +127,7 @@ class PostMapSection extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.pin_drop,
-                          size: 16,
-                          color: Colors.grey.shade700,
-                        ),
+                        Icon(Icons.pin_drop, size: 16, color: Colors.grey.shade700),
                         const SizedBox(width: 4),
                         Text(
                           "${latitude!.toStringAsFixed(6)}, ${longitude!.toStringAsFixed(6)}",
@@ -159,18 +150,11 @@ class PostMapSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.grey.shade200,
-                  style: BorderStyle.solid,
-                ),
+                border: Border.all(color: Colors.grey.shade200),
               ),
               child: Column(
                 children: [
-                  Icon(
-                    Icons.location_off,
-                    size: 40,
-                    color: Colors.grey.shade400,
-                  ),
+                  Icon(Icons.location_off, size: 40, color: Colors.grey.shade400),
                   const SizedBox(height: 12),
                   Text(
                     "Henüz konum seçilmedi",
@@ -193,10 +177,8 @@ class PostMapSection extends StatelessWidget {
               ),
             ),
 
-          // Location Picker Button
           InkWell(
             onTap: () async {
-              // Sayfaya git, LatLng ve adres döner
               final result = await Navigator.pushNamed(context, '/map') as Map<String, dynamic>?;
               if (result != null) {
                 final latLng = result['latlng'] as LatLng;
@@ -208,10 +190,10 @@ class PostMapSection extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 14),
               width: double.infinity,
               decoration: BoxDecoration(
-                color: hasLocation ? Colors.grey.shade100 : Colors.blue.shade50,
+                color: hasLocation ? Colors.grey.shade100 : const Color(0xFFFFEEEE),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: hasLocation ? Colors.grey.shade300 : Colors.blue.shade200,
+                  color: hasLocation ? Colors.grey.shade300 : const Color(0xFFFFCCCC),
                 ),
               ),
               child: Row(
@@ -220,15 +202,15 @@ class PostMapSection extends StatelessWidget {
                   Icon(
                     hasLocation ? Icons.edit_location : Icons.add_location,
                     size: 24,
-                    color: Colors.blue.shade700,
+                    color: const Color(0xFFFF0000),
                   ),
                   const SizedBox(width: 10),
                   Text(
                     hasLocation ? "Konumu Değiştir" : "Haritadan Konum Seç",
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: Colors.blue.shade700,
+                      color: Color(0xFFFF0000),
                     ),
                   ),
                 ],
