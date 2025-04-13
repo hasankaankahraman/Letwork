@@ -226,13 +226,14 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                   builder: (context, state) {
                     return MarkerLayer(
                       markers: state.businesses.map((b) {
-                        return Marker(
+                        return
+                          Marker(
                           point: LatLng(b.latitude, b.longitude),
-                          width: 40,
-                          height: 40,
+                          width: 20,
+                          height: 20,
                           child: GestureDetector(
                             onTap: () => _onMarkerTap(b),
-                            child: const Icon(Icons.location_on, color: Colors.red),
+                            child: Image.asset("assets/pin.png", fit: BoxFit.contain),
                           ),
                         );
                       }).toList(),
