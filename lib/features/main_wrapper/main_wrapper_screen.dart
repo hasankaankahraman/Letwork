@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:letwork/features/business/cubit/add_business_cubit.dart';
 import 'package:letwork/features/business/view/add_business_screen.dart';
 import 'package:letwork/features/chat/view/chat_list_screen.dart';
+import 'package:letwork/features/favorites/cubit/favorites_cubit.dart';
+import 'package:letwork/features/favorites/repository/favorites_repository.dart';
 import 'package:letwork/features/favorites/view/favorites_screen.dart';
 import 'package:letwork/features/home/cubit/home_cubit.dart';
 import 'package:letwork/features/home/repository/home_repository.dart';
 import 'package:letwork/features/home/view/home_screen.dart';
 import 'package:letwork/features/profile/view/profile_screen.dart';
+
 import 'custom_bottom_navbar.dart';
 
 class MainWrapperScreen extends StatefulWidget {
@@ -19,20 +24,23 @@ class MainWrapperScreen extends StatefulWidget {
 
 class _MainWrapperScreenState extends State<MainWrapperScreen> {
   int _currentIndex = 0;
+  String? userId;
 
-  final List<Widget> _pages = [
-    BlocProvider(
-      create: (_) => HomeCubit(HomeRepository()),
-      child: const HomeScreen(),
-    ),
-    const ChatScreen(),
-    BlocProvider(
-      create: (_) => AddBusinessCubit(),
-      child: const AddBusinessScreen(),
-    ),
-    const FavoritesScreen(),
-    const ProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+  }
+
+  Future<void> _loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final id = prefs.getInt("userId")?.toString();
+    if (mounted) {
+      setState(() {
+        userId = id;
+      });
+    }
+  }
 
   void _onTabSelected(int index) {
     setState(() {
@@ -42,11 +50,35 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        onTabSelected: _onTabSelected,
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => HomeCubit(HomeRepository())),
+        BlocProvider(create: (_) => AddBusinessCubit()),
+        BlocProvider(
+          create: (_) => FavoritesCubit(FavoritesRepository())..loadFavorites(userId!),
+        ),
+      ],
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: const [
+            HomeScreen(),
+            ChatScreen(),
+            AddBusinessScreen(),
+            FavoritesScreen(),
+            ProfileScreen(),
+          ],
+        ),
+        bottomNavigationBar: CustomBottomNavBar(
+          currentIndex: _currentIndex,
+          onTabSelected: _onTabSelected,
+        ),
       ),
     );
   }

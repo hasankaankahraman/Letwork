@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:letwork/data/model/business_detail_model.dart';
 import 'package:letwork/data/model/business_model.dart';
 import 'package:letwork/data/services/dio_client.dart';
@@ -17,6 +18,7 @@ class BusinessService {
       throw Exception(response.data['message']);
     }
   }
+
   Future<List<BusinessModel>> fetchAllBusinesses() async {
     final response = await _dio.get("business/get_business.php");
 
@@ -27,6 +29,4 @@ class BusinessService {
       throw Exception("İşletmeler alınamadı");
     }
   }
-
-
 }

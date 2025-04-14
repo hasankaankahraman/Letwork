@@ -1,9 +1,8 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:letwork/data/services/favorites_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:letwork/data/model/business_detail_model.dart';
 import 'package:letwork/data/services/business_service.dart';
 import 'package:letwork/features/review/cubit/review_cubit.dart';
@@ -12,7 +11,7 @@ import 'package:letwork/features/review/widgets/review_section.dart';
 import 'package:letwork/features/business/widgets/get_businessinfo_section.dart';
 import 'package:letwork/features/business/widgets/get_map_section.dart';
 import 'package:letwork/features/business/widgets/get_menu_section.dart';
-import 'package:letwork/features/business/widgets/get_photos_section.dart'; // 👈 BURAYI EKLE
+import 'package:letwork/features/business/widgets/get_photos_section.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final String businessId;
@@ -25,12 +24,70 @@ class BusinessDetailScreen extends StatefulWidget {
 
 class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
   late Future<BusinessDetailModel> _future;
+  String? userId;
+  bool isFavorite = false;
 
   @override
   void initState() {
     super.initState();
     _future = BusinessService().fetchBusinessDetail(widget.businessId);
+    _loadUserId();
   }
+
+  Future<void> _loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final id = prefs.getInt("userId");
+
+    if (id != null) {
+      debugPrint("✅ SharedPreferences'ten gelen userId: $id");
+
+      setState(() {
+        userId = id.toString();
+      });
+
+      await _checkFavoriteStatus(); // setState sonrası çağırmak daha doğru
+    } else {
+      debugPrint("❌ SharedPreferences'ten userId alınamadı!");
+    }
+  }
+
+
+
+  Future<void> _checkFavoriteStatus() async {
+    try {
+      final status = await FavoritesService().isFavorite(userId!, widget.businessId);
+      setState(() {
+        isFavorite = status;
+      });
+    } catch (e) {
+      debugPrint("Favori durumu alınamadı: $e");
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    debugPrint("❤️ Favori butonuna basıldı. userId: $userId");
+
+    if (userId == null) {
+      debugPrint("❗ userId null olduğu için işlem yapılmadı.");
+      return;
+    }
+
+    setState(() => isFavorite = !isFavorite);
+
+    try {
+      if (isFavorite) {
+        await FavoritesService().addToFavorites(userId!, widget.businessId);
+        debugPrint("✅ Favoriye eklendi");
+      } else {
+        await FavoritesService().removeFromFavorites(userId!, widget.businessId);
+        debugPrint("✅ Favoriden çıkarıldı");
+      }
+    } catch (e) {
+      debugPrint("❌ Favori işlemi başarısız: $e");
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +127,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                           _buildServicesSection(business),
                         if (business.images.isNotEmpty) ...[
                           const SizedBox(height: 24),
-                          PhotosSection(business: business), // 👈 BURADA YENİ WIDGET KULLANILIYOR
+                          PhotosSection(business: business),
                         ],
                         const SizedBox(height: 24),
                         ReviewSection(businessId: widget.businessId),
@@ -90,7 +147,16 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
-      backgroundColor: const Color(0xFFFF0000), // Kırmızı tema
+      backgroundColor: const Color(0xFFFF0000),
+      actions: [
+        IconButton(
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: Colors.white,
+          ),
+          onPressed: _toggleFavorite,
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           business.name,
@@ -118,7 +184,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       children: [
         const Text(
           "Verilen Hizmetler",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFFF0000)), // Kırmızı tema
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFFF0000)),
         ),
         const SizedBox(height: 12),
         ListView.builder(
@@ -134,7 +200,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                 "${service['price']}₺",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFFFF0000), // Kırmızı tema
+                  color: Color(0xFFFF0000),
                 ),
               ),
             );

@@ -1,6 +1,19 @@
-part of 'favorites_cubit.dart';
+import 'package:letwork/data/model/business_model.dart';
 
-@immutable
-sealed class FavoritesState {}
+abstract class FavoritesState {}
 
-final class FavoritesInitial extends FavoritesState {}
+class FavoritesInitial extends FavoritesState {}
+
+class FavoritesLoading extends FavoritesState {}
+
+class FavoritesLoaded extends FavoritesState {
+  final List<BusinessModel> favorites;
+
+  FavoritesLoaded({required this.favorites});
+}
+
+class FavoritesError extends FavoritesState {
+  final String message;
+
+  FavoritesError({required this.message});
+}

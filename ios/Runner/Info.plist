@@ -6,6 +6,9 @@
     <string>Uygulama konumunuzu kullanmak istiyor.</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Uygulama arka planda konumunuzu kullanabilir.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Your description about why you need local network access</string>
+
 
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
