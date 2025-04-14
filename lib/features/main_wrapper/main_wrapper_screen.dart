@@ -24,7 +24,9 @@ class MainWrapperScreen extends StatefulWidget {
 
 class _MainWrapperScreenState extends State<MainWrapperScreen> {
   int _currentIndex = 0;
+  int _previousIndex = 0;
   String? userId;
+  late FavoritesCubit _favoritesCubit;
 
   @override
   void initState() {
@@ -43,9 +45,22 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
   }
 
   void _onTabSelected(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    if (_currentIndex != index) {
+      setState(() {
+        _previousIndex = _currentIndex;
+        _currentIndex = index;
+      });
+
+      // If switching to Favorites tab (index 3), refresh favorites
+      if (index == 3 && userId != null) {
+        // Add a small delay to ensure the tab has switched first
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            _favoritesCubit.loadFavorites(userId!);
+          }
+        });
+      }
+    }
   }
 
   @override
@@ -61,7 +76,14 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
         BlocProvider(create: (_) => HomeCubit(HomeRepository())),
         BlocProvider(create: (_) => AddBusinessCubit()),
         BlocProvider(
-          create: (_) => FavoritesCubit(FavoritesRepository())..loadFavorites(userId!),
+          create: (context) {
+            _favoritesCubit = FavoritesCubit(FavoritesRepository());
+            // Only load favorites initially if we start on the favorites tab
+            if (_currentIndex == 3) {
+              _favoritesCubit.loadFavorites(userId!);
+            }
+            return _favoritesCubit;
+          },
         ),
       ],
       child: Scaffold(
