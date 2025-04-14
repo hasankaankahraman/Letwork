@@ -1,6 +1,6 @@
 class BusinessModel {
   final String id;
-  final String userId; // 👈 EKLENDİ
+  final String userId;
   final String name;
   final String description;
   final String address;
@@ -12,10 +12,11 @@ class BusinessModel {
   final double longitude;
   final double? distance;
   final String? menuRaw;
+  bool isFavorite; // 👈 FAVORİ EKLENDİ
 
   BusinessModel({
     required this.id,
-    required this.userId, // 👈 EKLENDİ
+    required this.userId,
     required this.name,
     required this.description,
     required this.address,
@@ -27,12 +28,13 @@ class BusinessModel {
     required this.longitude,
     this.distance,
     this.menuRaw,
+    this.isFavorite = false, // 👈 DEFAULT false
   });
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) {
     return BusinessModel(
       id: json['id'].toString(),
-      userId: json['user_id'].toString(), // 👈 EKLENDİ
+      userId: json['user_id'].toString(),
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       address: json['address'] ?? '',
@@ -46,6 +48,7 @@ class BusinessModel {
           ? double.tryParse(json['distance'].toString())
           : null,
       menuRaw: json['menu']?.toString(),
+      isFavorite: json['is_favorite'] == true || json['is_favorite'] == 1, // API'den geliyorsa
     );
   }
 

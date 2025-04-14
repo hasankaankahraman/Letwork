@@ -7,8 +7,12 @@ class FavoritesRepository {
   Future<List<BusinessModel>> getUserFavorites(String userId) {
     return _service.fetchUserFavorites(userId);
   }
+
   Future<void> removeFromFavorites(String userId, String businessId) {
     return _service.removeFromFavorites(userId, businessId);
   }
 
+  Future<void> addToFavorites(String userId, String businessId) {
+    return _service.addToFavorites(userId, businessId);
+  }
 }

@@ -11,6 +11,7 @@ import 'package:letwork/features/home/widgets/section_header.dart';
 import 'package:letwork/features/search/cubit/search_cubit.dart';
 import 'package:letwork/features/search/repository/search_repository.dart';
 import 'package:letwork/features/search/view/search_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> categoryList = [];
   bool isLoadingLocation = false;
   TextEditingController searchController = TextEditingController();
+  String? userId;
 
   final List<String> majorCities = [
     'İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Adana',
@@ -49,13 +51,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    CategoryService().fetchFlatCategories().then((list) {
-      setState(() {
-        categoryList = list;
-      });
-    });
+    _init();
+  }
+
+  Future<void> _init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final id = prefs.getInt("userId")?.toString();
+    if (id == null) return;
+
+    setState(() => userId = id);
+
+    final cats = await CategoryService().fetchFlatCategories();
+    setState(() => categoryList = cats);
 
     context.read<HomeCubit>().loadBusinesses(
+      userId: userId!,
       city: selectedCity,
       category: selectedCategory,
     );
@@ -87,10 +97,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (city != null && city.isNotEmpty) {
         Navigator.pop(context);
-        setState(() {
-          selectedCity = city;
-        });
+        setState(() => selectedCity = city);
+
         context.read<HomeCubit>().loadBusinesses(
+          userId: userId!,
           city: selectedCity,
           category: selectedCategory,
         );
@@ -123,10 +133,9 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (_) => CitySelectorModal(
         selectedCity: selectedCity,
         onCitySelected: (city) {
-          setState(() {
-            selectedCity = city;
-          });
+          setState(() => selectedCity = city);
           context.read<HomeCubit>().loadBusinesses(
+            userId: userId!,
             city: city,
             category: selectedCategory,
           );
@@ -141,10 +150,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onCategorySelected(String cat) {
-    setState(() {
-      selectedCategory = cat;
-    });
+    setState(() => selectedCategory = cat);
     context.read<HomeCubit>().loadBusinesses(
+      userId: userId!,
       city: selectedCity,
       category: selectedCategory,
     );
@@ -157,11 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) {
           if (state is HomeLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000)),
-              ),
-            );
+            return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000))));
           } else if (state is HomeError) {
             return _buildError(state.message);
           } else if (state is HomeLoaded) {
@@ -169,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: const Color(0xFFFF0000),
               onRefresh: () async {
                 context.read<HomeCubit>().loadBusinesses(
+                  userId: userId!,
                   city: selectedCity,
                   category: selectedCategory,
                 );
@@ -182,13 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Kategoriler',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        const Text('Kategoriler', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 12),
                         CategoryRow(
                           selected: selectedCategory,
@@ -199,12 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   const SizedBox(height: 20),
                   SectionHeader(
-                    title: selectedCategory.isNotEmpty
-                        ? '$selectedCategory İşletmeleri'
-                        : 'İşletmeler',
-                    onFilterTap: () {
-                      // Filtreleme açılırsa burada işle
-                    },
+                    title: selectedCategory.isNotEmpty ? '$selectedCategory İşletmeleri' : 'İşletmeler',
+                    onFilterTap: () {},
                   ),
                   const SizedBox(height: 16),
                   BusinessList(businesses: state.businesses),
@@ -226,10 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
       leadingWidth: 120,
       leading: Padding(
         padding: const EdgeInsets.only(left: 16.0),
-        child: Image.asset(
-          'assets/Letwork_Logo.png',
-          fit: BoxFit.contain,
-        ),
+        child: Image.asset('assets/Letwork_Logo.png', fit: BoxFit.contain),
       ),
       title: GestureDetector(
         onTap: _selectCity,
@@ -244,14 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const Icon(Icons.location_on, color: Color(0xFFFF0000), size: 18),
               const SizedBox(width: 4),
-              Text(
-                selectedCity,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
-              ),
+              Text(selectedCity, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 14)),
               const SizedBox(width: 4),
               const Icon(Icons.arrow_drop_down, color: Colors.black54, size: 20),
             ],
@@ -265,9 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             IconButton(
               icon: const Icon(Icons.notifications_outlined, color: Colors.black87, size: 26),
-              onPressed: () {
-                // Bildirim ekranı
-              },
+              onPressed: () {},
             ),
             Positioned(
               top: 14,
@@ -311,10 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: const [
             Icon(Icons.search, color: Color(0xFFFF0000)),
             SizedBox(width: 10),
-            Text(
-              'İşletme ara...',
-              style: TextStyle(color: Colors.black54, fontSize: 16),
-            ),
+            Text('İşletme ara...', style: TextStyle(color: Colors.black54, fontSize: 16)),
           ],
         ),
       ),
@@ -334,12 +314,11 @@ class _HomeScreenState extends State<HomeScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF0000),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () {
               context.read<HomeCubit>().loadBusinesses(
+                userId: userId!,
                 city: selectedCity,
                 category: selectedCategory,
               );

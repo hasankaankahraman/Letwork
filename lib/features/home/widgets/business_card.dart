@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:letwork/data/model/business_model.dart';
+import 'package:letwork/features/favorites/cubit/favorites_cubit.dart';
 import 'package:letwork/features/business/view/business_detail_screen.dart';
 
-class BusinessCard extends StatelessWidget {
+class BusinessCard extends StatefulWidget {
   final BusinessModel bModel;
-  final bool showFavoriteButton; // yeni parametre
+  final bool showFavoriteButton;
 
   const BusinessCard({
     super.key,
@@ -13,16 +16,47 @@ class BusinessCard extends StatelessWidget {
   });
 
   @override
+  State<BusinessCard> createState() => _BusinessCardState();
+}
+
+class _BusinessCardState extends State<BusinessCard> {
+  late bool isFav;
+
+  @override
+  void initState() {
+    super.initState();
+    isFav = widget.bModel.isFavorite;
+  }
+
+  Future<void> _toggleFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('userId')?.toString();
+
+    if (userId == null) return;
+
+    final favoritesCubit = context.read<FavoritesCubit>();
+
+    setState(() {
+      isFav = !isFav;
+      widget.bModel.isFavorite = isFav;
+    });
+
+    if (isFav) {
+      await favoritesCubit.addFavorite(userId, widget.bModel);
+    } else {
+      await favoritesCubit.removeFavorite(userId, widget.bModel.id);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BusinessDetailScreen(businessId: bModel.id),
-          ),
-        );
-      },
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BusinessDetailScreen(businessId: widget.bModel.id),
+        ),
+      ),
       child: Container(
         padding: const EdgeInsets.all(12),
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -41,9 +75,9 @@ class BusinessCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: bModel.profileImage.isNotEmpty
+              child: widget.bModel.profileImage.isNotEmpty
                   ? Image.network(
-                "https://letwork.hasankaan.com/${bModel.profileImage}",
+                widget.bModel.profileImageUrl,
                 width: 60,
                 height: 60,
                 fit: BoxFit.cover,
@@ -61,21 +95,24 @@ class BusinessCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    bModel.name,
+                    widget.bModel.name,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    bModel.category,
+                    widget.bModel.category,
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                 ],
               ),
             ),
-            if (showFavoriteButton)
+            if (widget.showFavoriteButton)
               IconButton(
-                icon: const Icon(Icons.favorite_border, color: Color(0xFFFF0000)),
-                onPressed: () {},
+                icon: Icon(
+                  isFav ? Icons.favorite : Icons.favorite_border,
+                  color: const Color(0xFFFF0000),
+                ),
+                onPressed: _toggleFavorite,
               ),
           ],
         ),

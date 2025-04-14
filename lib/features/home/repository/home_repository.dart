@@ -6,14 +6,16 @@ class HomeRepository {
   final Dio _dio = DioClient().dio;
 
   Future<List<BusinessModel>> fetchBusinesses({
-    String? city,
-    String? category,
+    required String city,
+    required String category,
+    required String userId,
   }) async {
     final response = await _dio.get(
       "business/get_business.php",
       queryParameters: {
-        if (city != null && city.isNotEmpty) "city": city,
-        if (category != null && category.isNotEmpty) "category": category,
+        "city": city,
+        "category": category,
+        "user_id": userId, // 🔴 Burası eksikti
       },
     );
 
