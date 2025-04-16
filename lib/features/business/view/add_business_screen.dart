@@ -255,9 +255,12 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                   PostImagesSection(
                     profileImage: profileImage,
                     detailImages: detailImages,
+                    existingProfileImage: null, // Add this
+                    existingDetailImages: const [], // Add this
                     onPickProfile: (file) => setState(() => profileImage = file),
                     onPickDetails: (files) => setState(() => detailImages = files),
                     onRemoveDetailImage: (index) => setState(() => detailImages.removeAt(index)),
+                    onRemoveExistingDetailImage: (index) {}, // Add this callback
                   ),
 
                   const SizedBox(height: 16),

@@ -9,15 +9,19 @@ import 'package:letwork/data/services/profile_service.dart';
 import 'package:letwork/features/profile/repository/profile_repository.dart';
 import 'package:letwork/features/profile/cubit/profile_cubit.dart';
 import 'package:letwork/features/profile/view/profile_edit_screen.dart';
+import 'package:letwork/features/business/repository/business_repository.dart';
+import 'package:letwork/features/business/cubit/update_business_cubit.dart';
+import 'package:letwork/features/business/view/update_business_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  Future<Map<String, String?>> _loadUserInfo() async {
+  Future<Map<String, dynamic>> _loadUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     return {
       "fullname": prefs.getString("fullname"),
       "email": prefs.getString("email"),
+      "userId": prefs.getInt("userId"),
     };
   }
 
@@ -30,7 +34,7 @@ class ProfileScreen extends StatelessWidget {
         BusinessService(),
         ProfileRepository(ProfileService(Dio())),
       )..fetchMyBusinesses(),
-      child: FutureBuilder<Map<String, String?>>(
+      child: FutureBuilder<Map<String, dynamic>>(
         future: _loadUserInfo(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
@@ -43,6 +47,7 @@ class ProfileScreen extends StatelessWidget {
 
           final fullname = snapshot.data?["fullname"] ?? "İsimsiz";
           final email = snapshot.data?["email"] ?? "E-posta bulunamadı";
+          final userId = snapshot.data?["userId"];
 
           return Scaffold(
             backgroundColor: Colors.grey[50],
@@ -255,10 +260,82 @@ class ProfileScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           itemCount: businesses.length,
                           itemBuilder: (context, index) {
-                            final b = businesses[index];
-                            return BusinessCard(
-                              bModel: b,
-                              showFavoriteButton: false, // opsiyonel olarak kapattık
+                            final business = businesses[index];
+                            // İşletme kartının altına işlemler için butonlar ekleyelim
+                            return Column(
+                              children: [
+                                BusinessCard(
+                                  bModel: business,
+                                  showFavoriteButton: false,
+                                ),
+                                // İşlem butonları
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        spreadRadius: 1,
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      // Düzenleme butonu
+                                      TextButton.icon(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => BlocProvider(
+                                                create: (_) => UpdateBusinessCubit(
+                                                  BusinessRepository(),
+                                                ),
+                                                child: UpdateBusinessScreen(
+                                                  businessId: int.parse(business.id),
+                                                ),
+                                              ),
+                                            ),
+                                          ).then((_) {
+                                            // İşletme güncellendikten sonra listeyi yenile
+                                            context.read<ProfileCubit>().fetchMyBusinesses();
+                                          });
+                                        },
+                                        icon: const Icon(Icons.edit, color: Colors.blue),
+                                        label: const Text(
+                                          "Düzenle",
+                                          style: TextStyle(color: Colors.blue),
+                                        ),
+                                      ),
+
+                                      // Dikey ayırıcı çizgi
+                                      Container(
+                                        height: 25,
+                                        width: 1,
+                                        color: Colors.grey[300],
+                                      ),
+
+                                      // Silme butonu
+                                      TextButton.icon(
+                                        onPressed: () {
+                                          _showDeleteConfirmation(context, business.id, userId);
+                                        },
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        label: const Text(
+                                          "Sil",
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             );
                           },
                         );
@@ -274,5 +351,78 @@ class ProfileScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  // İşletme silme onay dialogu
+  Future<void> _showDeleteConfirmation(BuildContext context, String businessId, int? userId) async {
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Kullanıcı bilgileri bulunamadı"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("İşletmeyi Sil"),
+        content: const Text(
+          "Bu işletmeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("İptal", style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Sil", style: TextStyle(color: Color(0xFFFF0000))),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        // Verdiğin API'ye göre BusinessService'i kullanarak işletmeyi siliyoruz
+        final result = await BusinessService().deleteBusiness(int.parse(businessId), userId);
+
+        if (result['status'] == 'success') {
+          // Liste güncelleniyor
+          if (context.mounted) {
+            context.read<ProfileCubit>().fetchMyBusinesses();
+
+            // Başarılı mesajı gösteriliyor
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? "İşletme başarıyla silindi"),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? "İşletme silinemedi"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("İşletme silinemedi: $e"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 }

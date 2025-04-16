@@ -18,6 +18,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late final Future<BusinessModel> _businessDetails;
+  final Color themeColor = const Color(0xFFFF0000);
   bool _isLoading = false;
 
   @override
@@ -31,7 +32,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     try {
       final businessService = BusinessService();
       final businessDetail = await businessService.fetchBusinessDetail(widget.businessId);
-
       return BusinessModel(
         id: businessDetail.id,
         userId: businessDetail.userId,
@@ -71,7 +71,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     try {
       await context.read<ChatCubit>().sendMessage(
-        senderId: 'userId',  // Kullanıcı ID'nizi buraya ekleyin
+        senderId: '1',
         businessId: widget.businessId,
         message: message,
       );
@@ -97,32 +97,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  String _formatMessageTime(dynamic timestamp) {
-    if (timestamp == null) return DateFormat('HH:mm').format(DateTime.now());
-
-    DateTime dateTime;
-
-    if (timestamp is DateTime) {
-      dateTime = timestamp;
-    } else if (timestamp is String) {
-      try {
-        dateTime = DateTime.parse(timestamp);
-      } catch (_) {
-        return DateFormat('HH:mm').format(DateTime.now());
-      }
-    } else if (timestamp is int) {
-      dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    } else {
-      return DateFormat('HH:mm').format(DateTime.now());
-    }
-
-    return DateFormat('HH:mm').format(dateTime);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(),
       body: SafeArea(
         child: Column(
@@ -140,10 +118,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
-      scrolledUnderElevation: 2,
+      scrolledUnderElevation: 1,
       backgroundColor: Colors.white,
+      foregroundColor: themeColor,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black54),
+        icon: Icon(Icons.arrow_back, color: themeColor),
         onPressed: () => Navigator.of(context).pop(),
       ),
       titleSpacing: 0,
@@ -151,17 +130,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         future: _businessDetails,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
+            return Center(
               child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2)
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: themeColor,
+                ),
               ),
             );
           } else if (snapshot.hasError) {
             return Text(
               'Hata oluştu',
-              style: TextStyle(color: Colors.red[700], fontSize: 14),
+              style: TextStyle(color: themeColor, fontSize: 14),
             );
           } else if (snapshot.hasData) {
             final business = snapshot.data!;
@@ -174,9 +156,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           }
         },
       ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1.0),
+        child: Container(
+          height: 1.0,
+          color: themeColor,
+        ),
+      ),
       actions: [
         PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert, color: Colors.black54),
+          icon: Icon(Icons.more_vert, color: themeColor),
           onSelected: (value) {
             switch (value) {
               case 'profile':
@@ -191,33 +180,33 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'profile',
               child: Row(
                 children: [
-                  Icon(Icons.store, size: 18),
-                  SizedBox(width: 8),
-                  Text('İşletme Profili'),
+                  Icon(Icons.store, size: 18, color: themeColor),
+                  const SizedBox(width: 8),
+                  const Text('İşletme Profili'),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'block',
               child: Row(
                 children: [
-                  Icon(Icons.block, size: 18),
-                  SizedBox(width: 8),
-                  Text('İşletmeyi Engelle'),
+                  Icon(Icons.block, size: 18, color: themeColor),
+                  const SizedBox(width: 8),
+                  const Text('İşletmeyi Engelle'),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'report',
               child: Row(
                 children: [
-                  Icon(Icons.flag, size: 18),
-                  SizedBox(width: 8),
-                  Text('Şikayet Et'),
+                  Icon(Icons.flag, size: 18, color: themeColor),
+                  const SizedBox(width: 8),
+                  const Text('Şikayet Et'),
                 ],
               ),
             ),
@@ -238,6 +227,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.grey[200],
+              border: Border.all(color: themeColor, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -248,9 +238,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(19),
               child: Image.network(
-                business.profileImageUrl,
+                business.profileImage.isNotEmpty
+                    ? "https://letwork.hasankaan.com/${business.profileImage}"
+                    : "https://letwork.hasankaan.com/assets/default_profile.png",
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => const Center(
                   child: Icon(Icons.store, color: Colors.grey),
@@ -291,14 +283,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   Container(
                     width: 8,
                     height: 8,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.green,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Çevrimiçi', // Veya işletme durumuna göre değişebilir
+                    'Çevrimiçi',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 12,
@@ -317,15 +309,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, state) {
         if (state is ChatLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
+          return Center(
+            child: CircularProgressIndicator(color: themeColor),
           );
         } else if (state is ChatError) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                Icon(Icons.error_outline, size: 48, color: themeColor.withOpacity(0.7)),
                 const SizedBox(height: 16),
                 Text(
                   'Hata: ${state.message}',
@@ -334,6 +326,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _loadMessages,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: themeColor,
+                    foregroundColor: Colors.white,
+                  ),
                   child: const Text('Tekrar Dene'),
                 ),
               ],
@@ -359,58 +355,23 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.chat_bubble_outline, size: 64, color: themeColor.withOpacity(0.5)),
           const SizedBox(height: 16),
           Text(
-            'Henüz bir mesaj yok',
+            'Henüz mesaj yok',
             style: TextStyle(
-              color: Colors.grey[700],
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'İşletmeye ilk mesajı gönder',
+            'Bu işletme ile sohbete başlayın',
             style: TextStyle(
-              color: Colors.grey[500],
               fontSize: 14,
+              color: Colors.grey[500],
             ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Colors.blue[600],
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 12,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            icon: const Icon(Icons.message_rounded),
-            label: const Text('Mesaj Yaz'),
-            onPressed: () {
-              // TextField'a odaklan
-              FocusScope.of(context).requestFocus(
-                  FocusNode()
-              );
-              // 300ms sonra TextField'a odaklan
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (mounted) {
-                  _messageController.selection = TextSelection.fromPosition(
-                      TextPosition(offset: _messageController.text.length)
-                  );
-                  FocusScope.of(context).unfocus();
-                }
-              });
-            },
           ),
         ],
       ),
@@ -421,176 +382,129 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return ListView.builder(
       controller: _scrollController,
       reverse: true,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
-        final isMe = message.senderId == 'userId'; // Kullanıcı ID'nizi kontrol edin
+        final isMe = message.senderId == '1'; // API'den gelen kullanıcı ID'si
+
+        DateTime messageTime;
+        try {
+          messageTime = DateTime.parse(message.createdAt);
+        } catch (e) {
+          messageTime = DateTime.now();
+          debugPrint('Tarih dönüştürme hatası: $e');
+        }
 
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: _buildChatBubble(message, isMe),
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Row(
+            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: [
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: isMe ? themeColor : themeColor.withOpacity(0.3),
+                      width: isMe ? 1.5 : 1.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 3,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        message.message,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            DateFormat('HH:mm').format(messageTime),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 11,
+                            ),
+                          ),
+                          if (isMe) ...[
+                            const SizedBox(width: 4),
+                            _buildReadStatus(message),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildChatBubble(dynamic message, bool isMe) {
-    return Row(
-      mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        if (!isMe) ...[
-          FutureBuilder<BusinessModel>(
-            future: _businessDetails,
-            builder: (context, snapshot) {
-              String imageUrl = "https://letwork.hasankaan.com/assets/default_profile.png";
-              if (snapshot.hasData) {
-                imageUrl = snapshot.data!.profileImageUrl;
-              }
+  Widget _buildReadStatus(dynamic message) {
+    final isRead = message.isRead ?? false;
 
-              return CircleAvatar(
-                radius: 16,
-                backgroundColor: Colors.grey[200],
-                backgroundImage: NetworkImage(imageUrl),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-        Flexible(
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.75,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: isMe
-                  ? Theme.of(context).primaryColor
-                  : Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(18),
-                topRight: const Radius.circular(18),
-                bottomLeft: isMe ? const Radius.circular(18) : const Radius.circular(4),
-                bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(18),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!isMe && message.senderName != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      message.senderName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                  ),
-                Text(
-                  message.message ?? '',
-                  style: TextStyle(
-                    color: isMe ? Colors.white : Colors.black87,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (isMe) ...[
-                      Icon(
-                        message.isRead ?? false
-                            ? Icons.done_all
-                            : Icons.done,
-                        size: 14,
-                        color: isMe ? Colors.white70 : Colors.grey[400],
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-                    Text(
-                      _formatMessageTime(message.createdAt),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isMe ? Colors.white70 : Colors.grey[500],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+    return Icon(
+      isRead ? Icons.done_all : Icons.done,
+      size: 14,
+      color: isRead ? themeColor : Colors.grey[400],
     );
   }
 
   Widget _buildMessageInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
+        border: Border(
+          top: BorderSide(color: themeColor, width: 1),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -3),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 5,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.attach_file_rounded, color: Colors.grey),
-              onPressed: () {
-                // Dosya ekleme menüsünü aç
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => _buildAttachmentMenu(),
-                );
-              },
-            ),
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
+                margin: const EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: themeColor.withOpacity(0.5)),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        decoration: const InputDecoration(
-                          hintText: 'Mesajınızı yazın...',
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        ),
-                        maxLines: null,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => _sendMessage(),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.emoji_emotions_outlined, color: Colors.grey),
-                      onPressed: () {
-                        // Emoji picker'ı aç
-                      },
-                    ),
-                  ],
+                child: TextField(
+                  controller: _messageController,
+                  decoration: InputDecoration(
+                    hintText: 'Mesajınızı yazın...',
+                    hintStyle: TextStyle(color: Colors.grey[500], fontSize: 15),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                  maxLines: null,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => _sendMessage(),
                 ),
               ),
             ),
@@ -598,11 +512,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               borderRadius: BorderRadius.circular(25),
               onTap: _sendMessage,
               child: Container(
-                width: 50,
-                height: 50,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
+                  color: themeColor,
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: themeColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(
@@ -618,64 +539,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentMenu() {
-    final List<Map<String, dynamic>> attachmentOptions = [
-      {'icon': Icons.photo_library, 'title': 'Galeri', 'color': Colors.purple},
-      {'icon': Icons.camera_alt, 'title': 'Kamera', 'color': Colors.blue},
-      {'icon': Icons.location_on, 'title': 'Konum', 'color': Colors.green},
-      {'icon': Icons.insert_drive_file, 'title': 'Dosya', 'color': Colors.orange},
-    ];
-
-    return Container(
-      height: 150,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: attachmentOptions.length,
-        itemBuilder: (context, index) {
-          final option = attachmentOptions[index];
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(
-              children: [
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    // Burada ilgili eklenti için işlemi gerçekleştir
-                  },
-                  borderRadius: BorderRadius.circular(30),
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: option['color'],
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      option['icon'],
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  option['title'],
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }

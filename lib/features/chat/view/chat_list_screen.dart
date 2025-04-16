@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:letwork/features/chat/cubit/chat_cubit.dart';
 import 'package:letwork/features/chat/view/chat_detail_screen.dart';
-import 'package:letwork/data/model/chat_model.dart';
 import 'package:intl/intl.dart';
-import 'package:letwork/features/home/cubit/home_cubit.dart';
-import 'package:letwork/features/home/view/home_screen.dart';
-import 'package:letwork/features/home/repository/home_repository.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -16,6 +12,8 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
+  final Color themeColor = const Color(0xFFFF0000);
+
   @override
   void initState() {
     super.initState();
@@ -49,16 +47,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final difference = now.difference(dateTime);
 
     if (difference.inDays == 0) {
-      // Bugün ise saati göster
       return DateFormat('HH:mm').format(dateTime);
     } else if (difference.inDays == 1) {
-      // Dün ise
       return 'Dün';
     } else if (difference.inDays < 7) {
-      // Son bir hafta içindeyse günü göster
       return DateFormat('EEEE', 'tr_TR').format(dateTime);
     } else {
-      // Daha eskiyse tarihi göster
       return DateFormat('dd.MM.yyyy').format(dateTime);
     }
   }
@@ -71,43 +65,48 @@ class _ChatListScreenState extends State<ChatListScreen> {
         elevation: 0,
         scrolledUnderElevation: 2,
         backgroundColor: Colors.white,
-        title: const Text(
+        title: Text(
           'Mesajlar',
           style: TextStyle(
-            color: Colors.black87,
+            color: themeColor,
             fontWeight: FontWeight.w600,
+            fontSize: 20,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black54),
+            icon: Icon(Icons.search, color: themeColor),
             onPressed: () {
               // Arama fonksiyonu
             },
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.black54),
+            icon: Icon(Icons.more_vert, color: themeColor),
             onSelected: (value) {
-              // Menu aksiyonları
+              if (value == 'mark_all_read') {
+                // Tümünü okundu olarak işaretle
+              } else if (value == 'settings') {
+                // Mesaj ayarları
+              }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'mark_all_read',
                 child: Row(
                   children: [
-                    Icon(Icons.mark_chat_read, size: 18),
-                    SizedBox(width: 8),
-                    Text('Tümünü Okundu İşaretle'),
+                    Icon(Icons.mark_chat_read, size: 18, color: themeColor),
+                    const SizedBox(width: 8),
+                    const Text('Tümünü Okundu İşaretle'),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'settings',
                 child: Row(
                   children: [
-                    Icon(Icons.settings, size: 18),
-                    SizedBox(width: 8),
-                    Text('Mesaj Ayarları'),
+                    Icon(Icons.settings, size: 18, color: themeColor),
+                    const SizedBox(width: 8),
+                    const Text('Mesaj Ayarları'),
                   ],
                 ),
               ),
@@ -116,14 +115,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ],
       ),
       body: RefreshIndicator(
+        color: themeColor,
         onRefresh: () async {
           _loadChats();
         },
         child: BlocBuilder<ChatCubit, ChatState>(
           builder: (context, state) {
             if (state is ChatLoading) {
-              return const Center(
-                child: CircularProgressIndicator(),
+              return Center(
+                child: CircularProgressIndicator(color: themeColor),
               );
             } else if (state is ChatError) {
               return _buildErrorView(state.message);
@@ -135,25 +135,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Yeni mesaj oluşturma ekranına git
-        },
-        backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(Icons.chat, color: Colors.white),
-      ),
     );
   }
 
   Widget _buildChatList(List<dynamic> chats) {
     return ListView.separated(
-      padding: const EdgeInsets.only(top: 8, bottom: 80),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       itemCount: chats.length,
-      separatorBuilder: (context, index) => Divider(
-        height: 1,
-        indent: 80,
-        color: Colors.grey[200],
-      ),
+      separatorBuilder: (context, index) => const Divider(height: 1, indent: 76),
       itemBuilder: (context, index) {
         final chat = chats[index];
         final bool hasUnreadMessages = chat.unreadCount != null && chat.unreadCount > 0;
@@ -167,65 +156,29 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Stack(
-                  children: [
-                    Hero(
-                      tag: 'business-${chat.businessId}',
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey[200],
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 2,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(30),
-                          child: chat.profileImage != null
-                              ? Image.network(
-                            chat.profileImage,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Icon(Icons.store, color: Colors.grey),
-                            ),
-                          )
-                              : const Center(
-                            child: Icon(Icons.store, color: Colors.grey),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (chat.isOnline == true)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: themeColor.withOpacity(0.1),
+                  backgroundImage: NetworkImage(chat.profileImageUrl),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,7 +205,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               color: hasUnreadMessages
-                                  ? Theme.of(context).primaryColor
+                                  ? themeColor
                                   : Colors.grey[500],
                               fontWeight: hasUnreadMessages
                                   ? FontWeight.bold
@@ -288,7 +241,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
+                                color: themeColor,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -322,51 +275,47 @@ class _ChatListScreenState extends State<ChatListScreen> {
           Icon(
             Icons.chat_bubble_outline,
             size: 80,
-            color: Colors.grey[400],
+            color: themeColor.withOpacity(0.5),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             'Henüz bir mesajınız yok',
             style: TextStyle(
-              color: Colors.grey[700],
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'İşletmelerle iletişime geçerek mesajlaşmaya başlayabilirsiniz.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 14,
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'İşletmelerle iletişime geçerek mesajlaşmaya başlayabilirsiniz.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 15,
+              ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: themeColor,
               padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 12,
+                horizontal: 24,
+                vertical: 14,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              elevation: 0,
             ),
             icon: const Icon(Icons.explore),
             label: const Text('İşletmelere Göz At'),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BlocProvider(
-                    create: (context) => HomeCubit(HomeRepository()),
-                    child: const HomeScreen(),
-                  ),
-                ),
-              );
+              // İşletmelere göz at butonuna basıldığında yapılacak işlem
             },
           ),
         ],
@@ -379,37 +328,41 @@ class _ChatListScreenState extends State<ChatListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-          const SizedBox(height: 16),
+          Icon(Icons.error_outline, size: 70, color: themeColor.withOpacity(0.7)),
+          const SizedBox(height: 20),
           Text(
             'Bir hata oluştu',
             style: TextStyle(
               color: Colors.grey[800],
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 15,
+              ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: themeColor,
               padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 12,
+                horizontal: 24,
+                vertical: 14,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              elevation: 0,
             ),
             icon: const Icon(Icons.refresh),
             label: const Text('Tekrar Dene'),

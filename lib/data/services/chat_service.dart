@@ -7,30 +7,34 @@ class ChatService {
   final Dio _dio = DioClient().dio;
 
   // Get current user ID
-  Future<String> getUserId() async {
+  Future<int> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
     // Get the user ID with a default fallback of "1" if not found
     String userId = prefs.getString('user_id') ?? '1';
 
-    // Make sure we don't return an empty string
+    // Make sure we don't return an empty string and handle any non-numeric values
     if (userId.isEmpty) {
-      userId = '1';
+      userId = '1';  // Fallback to 1 if the user_id is empty
     }
 
-    return userId;
+    // Safely attempt to parse the userId to an integer
+    int parsedUserId = int.tryParse(userId) ?? 1;  // Default to 1 if parsing fails
+    print("UserId after parsing: $parsedUserId");
+
+    return parsedUserId;
   }
 
   // Sohbet listesini getir
   Future<List<ChatModel>> fetchChatList() async {
     try {
       // Make sure we have a valid user ID
-      String userId = await getUserId();
+      int userId = await getUserId();
 
       // Log the user ID for debugging
       print("Fetching chats for user ID: $userId");
 
       final response = await _dio.get("chat/get_user_chats.php", queryParameters: {
-        "user_id": userId,
+        "user_id": userId.toString(),
       });
 
       if (response.data['status'] == 'success') {
@@ -49,10 +53,10 @@ class ChatService {
   // İşletme ile mesajları çekme
   Future<List<ChatModel>> fetchMessages(String businessId) async {
     try {
-      String userId = await getUserId();
+      int userId = await getUserId();
       final response = await _dio.get("chat/get_messages.php", queryParameters: {
         "business_id": businessId,
-        "user_id": userId,
+        "user_id": userId.toString(),
       });
 
       if (response.data['status'] == 'success') {
@@ -74,10 +78,14 @@ class ChatService {
     required String message,
   }) async {
     try {
+      // Convert senderId to int
+      int senderIdInt = await getUserId();  // Get the userId from SharedPreferences
+      print("Sending message from userId: $senderIdInt");
+
       final response = await _dio.post(
         "chat/send_message.php",
         data: {
-          "sender_id": senderId,
+          "sender_id": senderIdInt,  // Correct type of sender_id
           "business_id": businessId,
           "message": message,
         },
@@ -118,11 +126,11 @@ class ChatService {
   // Tüm mesajları okundu olarak işaretle
   Future<Map<String, dynamic>> markAllMessagesAsRead() async {
     try {
-      String userId = await getUserId();
+      int userId = await getUserId();
       final response = await _dio.post(
         "chat/mark_all_messages_read.php",
         data: {
-          "user_id": userId,
+          "user_id": userId.toString(),
         },
       );
 
@@ -140,12 +148,12 @@ class ChatService {
   // Sohbeti sil
   Future<Map<String, dynamic>> deleteChat(String businessId) async {
     try {
-      String userId = await getUserId();
+      int userId = await getUserId();
       final response = await _dio.delete(
         "chat/delete_chat.php",
         data: {
           "business_id": businessId,
-          "user_id": userId,
+          "user_id": userId.toString(),
         },
       );
 
