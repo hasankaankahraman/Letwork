@@ -9,7 +9,18 @@ class ChatCubit extends Cubit<ChatState> {
 
   ChatCubit(this._chatRepository) : super(ChatInitial());
 
-  // Mesajları yükle
+  // Sohbet listesini yükle
+  Future<void> loadChatList() async {
+    try {
+      emit(ChatLoading());
+      final chats = await _chatRepository.getChatList();
+      emit(ChatLoaded(messages: chats));
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // Belirli bir işletme için mesajları yükle
   Future<void> loadMessages(String businessId) async {
     try {
       emit(ChatLoading());
@@ -27,13 +38,49 @@ class ChatCubit extends Cubit<ChatState> {
     required String message,
   }) async {
     try {
-      emit(ChatLoading());
+      // Yükleme durumuna geçmiyoruz çünkü zaten mesajlar yüklendi
       await _chatRepository.sendMessage(
         senderId: senderId,
         businessId: businessId,
         message: message,
       );
-      emit(ChatMessageSent());
+
+      // Mesaj gönderildikten sonra mesajları tekrar yükle
+      final messages = await _chatRepository.getMessages(businessId);
+      emit(ChatLoaded(messages: messages));
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // Mesajı okundu olarak işaretle
+  Future<void> markMessageAsRead(String messageId) async {
+    try {
+      await _chatRepository.markMessageAsRead(messageId);
+      // State'i güncellemeye gerek yok, çünkü bu genelde arka planda çalışır
+    } catch (e) {
+      // Hata durumunda sessizce devam et ya da loglama yap
+      print('Mesaj okundu işaretlenirken hata: $e');
+    }
+  }
+
+  // Tüm mesajları okundu olarak işaretle
+  Future<void> markAllMessagesAsRead() async {
+    try {
+      await _chatRepository.markAllMessagesAsRead();
+      // Sohbet listesini güncellemek için tekrar yükle
+      loadChatList();
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // Sohbeti sil
+  Future<void> deleteChat(String businessId) async {
+    try {
+      await _chatRepository.deleteChat(businessId);
+      // Sohbet listesini güncellemek için tekrar yükle
+      loadChatList();
     } catch (e) {
       emit(ChatError(message: e.toString()));
     }
