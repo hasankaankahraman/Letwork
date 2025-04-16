@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:letwork/data/services/favorites_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:letwork/data/model/business_detail_model.dart';
 import 'package:letwork/data/services/business_service.dart';
-import 'package:letwork/features/review/cubit/review_cubit.dart';
-import 'package:letwork/features/review/repository/review_repository.dart';
-import 'package:letwork/features/review/widgets/review_section.dart';
+import 'package:letwork/data/services/favorites_service.dart';
 import 'package:letwork/features/business/widgets/get_businessinfo_section.dart';
 import 'package:letwork/features/business/widgets/get_map_section.dart';
 import 'package:letwork/features/business/widgets/get_menu_section.dart';
 import 'package:letwork/features/business/widgets/get_photos_section.dart';
+import 'package:letwork/features/chat/view/chat_detail_screen.dart';
+import 'package:letwork/features/review/cubit/review_cubit.dart';
+import 'package:letwork/features/review/repository/review_repository.dart';
+import 'package:letwork/features/review/widgets/review_section.dart';
+import 'package:shared_preferences/shared_preferences.dart';  // ChatDetailScreen'i import ediyoruz.
 
 class BusinessDetailScreen extends StatefulWidget {
   final String businessId;
@@ -51,8 +51,6 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
     }
   }
 
-
-
   Future<void> _checkFavoriteStatus() async {
     try {
       final status = await FavoritesService().isFavorite(userId!, widget.businessId);
@@ -86,8 +84,6 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       debugPrint("❌ Favori işlemi başarısız: $e");
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +127,34 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                         ],
                         const SizedBox(height: 24),
                         ReviewSection(businessId: widget.businessId),
+                        const SizedBox(height: 24),
+                        // İşletme ile iletişime geç butonu
+                        ElevatedButton(
+                          onPressed: () {
+                            // Chat detay ekranına yönlendir
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ChatDetailScreen(businessId: widget.businessId),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF0000), // Kırmızı arka plan
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            "İşletme ile İletişime Geç",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

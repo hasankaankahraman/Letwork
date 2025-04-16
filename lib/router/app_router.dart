@@ -6,17 +6,18 @@ import 'package:letwork/features/main_wrapper/main_wrapper_screen.dart'; // Main
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
+    // Route'larımıza göre işlemler yapıyoruz
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => const MainWrapperScreen());
+        return MaterialPageRoute(builder: (_) => const MainWrapperScreen());  // Ana ekran
       case '/login':
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
+        return MaterialPageRoute(builder: (_) => const LoginScreen());  // Login ekranı
       case '/map':
-        return MaterialPageRoute(builder: (_) => const MapLocationPickerScreen());
+        return MaterialPageRoute(builder: (_) => const MapLocationPickerScreen());  // Harita ekranı
       case '/add_business':
-        return MaterialPageRoute(builder: (_) => const AddBusinessScreen());
+        return MaterialPageRoute(builder: (_) => const AddBusinessScreen());  // İşletme ekleme ekranı
       default:
-        return MaterialPageRoute(builder: (_) => const LoginScreen()); // Unknown route
+        return MaterialPageRoute(builder: (_) => const LoginScreen());  // Tanımlanamayan route'lar için default olarak LoginScreen
     }
   }
 }

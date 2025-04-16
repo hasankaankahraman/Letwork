@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:letwork/features/business/cubit/add_business_cubit.dart';
 import 'package:letwork/features/business/view/add_business_screen.dart';
+import 'package:letwork/features/chat/cubit/chat_cubit.dart';  // ChatCubit'i import ediyoruz.
+import 'package:letwork/features/chat/repository/chat_repository.dart';  // ChatRepository'i import ediyoruz.
+import 'package:letwork/features/business/cubit/add_business_cubit.dart';
 import 'package:letwork/features/chat/view/chat_list_screen.dart';
 import 'package:letwork/features/favorites/cubit/favorites_cubit.dart';
-import 'package:letwork/features/favorites/repository/favorites_repository.dart';
 import 'package:letwork/features/favorites/view/favorites_screen.dart';
 import 'package:letwork/features/home/cubit/home_cubit.dart';
 import 'package:letwork/features/home/repository/home_repository.dart';
+import 'package:letwork/features/favorites/repository/favorites_repository.dart';
 import 'package:letwork/features/home/view/home_screen.dart';
+import 'package:letwork/features/main_wrapper/custom_bottom_navbar.dart';
+import 'package:letwork/features/main_wrapper/main_wrapper_screen.dart';
 import 'package:letwork/features/profile/view/profile_screen.dart';
-
-import 'custom_bottom_navbar.dart';
+import 'package:shared_preferences/shared_preferences.dart';  // MainWrapperScreen'i import ediyoruz.
 
 class MainWrapperScreen extends StatefulWidget {
   const MainWrapperScreen({super.key});
@@ -85,13 +86,15 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
             return _favoritesCubit;
           },
         ),
+        // Add the ChatCubit provider here
+        BlocProvider(create: (_) => ChatCubit(ChatRepository())),
       ],
       child: Scaffold(
         body: IndexedStack(
           index: _currentIndex,
           children: const [
             HomeScreen(),
-            ChatScreen(),
+            ChatListScreen(),  // ChatListScreen'i buraya ekliyoruz
             AddBusinessScreen(),
             FavoritesScreen(),
             ProfileScreen(),
