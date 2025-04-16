@@ -404,7 +404,7 @@
         <entry key="intl">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/intl-0.20.2/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/intl-0.18.1/lib" />
             </list>
           </value>
         </entry>
@@ -913,7 +913,7 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_macos-0.2.1+2/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_platform_interface-2.10.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image_picker_windows-0.2.1+1/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/intl-0.20.2/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/intl-0.18.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/latlong2-0.9.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/leak_tracker-10.0.7/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/leak_tracker_flutter_testing-3.0.8/lib" />

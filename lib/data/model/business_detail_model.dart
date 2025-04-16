@@ -1,5 +1,6 @@
 class BusinessDetailModel {
   final String id;
+  final String userId;       // 👈 userId ekleniyor
   final String name;
   final String description;
   final String category;
@@ -13,8 +14,14 @@ class BusinessDetailModel {
   final double latitude;
   final double longitude;
 
+  // Yeni eklenen alanlar
+  final String profileImage;  // Profil resmi
+  final String ownerName;     // Sahip adı
+  bool isFavorite;            // Favori durumu
+
   BusinessDetailModel({
     required this.id,
+    required this.userId,      // 👈 userId parametresi ekleniyor
     required this.name,
     required this.description,
     required this.category,
@@ -27,6 +34,9 @@ class BusinessDetailModel {
     required this.services, // 👈 EKLENDİ
     required this.latitude,
     required this.longitude,
+    required this.profileImage,  // Profil resmi
+    required this.ownerName,     // Sahip adı
+    this.isFavorite = false,    // Varsayılan olarak false
   });
 
   factory BusinessDetailModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +46,7 @@ class BusinessDetailModel {
 
     return BusinessDetailModel(
       id: json['id'].toString(),
+      userId: json['user_id'].toString(),  // 👈 userId burada ekleniyor
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       category: json['category'] ?? '',
@@ -48,6 +59,15 @@ class BusinessDetailModel {
       services: servicesRaw is List ? servicesRaw : [], // 👈 EKLENDİ
       latitude: double.tryParse(json['latitude'].toString()) ?? 0.0,
       longitude: double.tryParse(json['longitude'].toString()) ?? 0.0,
+      profileImage: json['profile_image'] ?? '',  // Profil resmi
+      ownerName: json['owner_name'] ?? '',       // Sahip adı
+      isFavorite: json['is_favorite'] == true || json['is_favorite'] == 1, // Favori durumu
     );
+  }
+
+  String get profileImageUrl {
+    return profileImage.isNotEmpty
+        ? "https://letwork.hasankaan.com/$profileImage"
+        : "https://letwork.hasankaan.com/assets/default_profile.png";
   }
 }
