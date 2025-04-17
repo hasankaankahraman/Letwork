@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
+import 'package:letwork/data/services/category_service.dart';
 import 'package:letwork/features/home/widgets/business_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -296,7 +297,9 @@ class ProfileScreen extends StatelessWidget {
                                               builder: (_) => BlocProvider(
                                                 create: (_) => UpdateBusinessCubit(
                                                   BusinessRepository(),
+                                                  CategoryService(), // bu eksikti
                                                 ),
+
                                                 child: UpdateBusinessScreen(
                                                   businessId: (business.id),
                                                 ),
