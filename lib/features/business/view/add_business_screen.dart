@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,7 +28,6 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
   final descController = TextEditingController();
   final openController = TextEditingController();
   final closeController = TextEditingController();
-  final addressController = TextEditingController();
 
   File? profileImage;
   List<File> detailImages = [];
@@ -68,34 +66,35 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
     descController.dispose();
     openController.dispose();
     closeController.dispose();
-    addressController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   Future<void> _fetchCategories() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final repo = CategoryRepository();
       final result = await repo.getCategories();
+      if (!mounted) return;
       setState(() {
         categoryGroups = List<Map<String, dynamic>>.from(result);
         _isLoading = false;
       });
     } catch (_) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text("Kategoriler alınamadı"),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Kategoriler alınamadı"),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
     }
   }
 
   void _updateProgress() {
+    if (!mounted) return;
     setState(() {
       _formProgress['businessInfo'] = nameController.text.isNotEmpty &&
           descController.text.isNotEmpty &&
@@ -114,58 +113,58 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
   }
 
   void _submit() async {
-    if (_formKey.currentState!.validate()) {
-      _updateProgress();
+    if (!_formKey.currentState!.validate()) return;
+    _updateProgress();
 
-      if (!_formProgress.values.every((completed) => completed)) {
-        final firstIncomplete = _formProgress.entries
-            .firstWhere((entry) => !entry.value, orElse: () => const MapEntry('', true));
+    if (!_formProgress.values.every((completed) => completed)) {
+      final firstIncomplete = _formProgress.entries
+          .firstWhere((entry) => !entry.value, orElse: () => const MapEntry('', true));
 
-        String message = switch (firstIncomplete.key) {
-          'businessInfo' => "Lütfen işletme bilgilerini eksiksiz doldurun",
-          'location' => "Lütfen işletme konumunu belirleyin",
-          'images' => "Lütfen profil fotoğrafı ve en az 3 detay fotoğrafı ekleyin",
-          'services' => "Lütfen en az bir hizmet ekleyin ve fiyatlandırın",
-          _ => "Lütfen tüm alanları eksiksiz doldurun",
-        };
+      String message = switch (firstIncomplete.key) {
+        'businessInfo' => "Lütfen işletme bilgilerini eksiksiz doldurun",
+        'location' => "Lütfen işletme konumunu belirleyin",
+        'images' => "Lütfen profil fotoğrafı ve en az 3 detay fotoğrafı ekleyin",
+        'services' => "Lütfen en az bir hizmet ekleyin ve fiyatlandırın",
+        _ => "Lütfen tüm alanları eksiksiz doldurun",
+      };
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.red.shade700),
-        );
-        return;
-      }
-
-      final formData = FormData();
-
-      formData.fields.addAll([
-        MapEntry('user_id', '1'),
-        MapEntry('name', nameController.text),
-        MapEntry('description', descController.text),
-        MapEntry('open_time', openController.text),
-        MapEntry('close_time', closeController.text),
-        MapEntry('address', address ?? ""),
-        MapEntry('category', selectedCategoryGroup!),
-        MapEntry('sub_category', selectedSubCategory!),
-        MapEntry('is_corporate', isCorporate ? '1' : '0'),
-        MapEntry('latitude', latitude.toString()),
-        MapEntry('longitude', longitude.toString()),
-        MapEntry('menu', jsonEncode(services)),
-      ]);
-
-      formData.files.add(MapEntry(
-        'profile_image',
-        await MultipartFile.fromFile(profileImage!.path),
-      ));
-
-      for (var file in detailImages) {
-        formData.files.add(MapEntry(
-          'detail_images[]',
-          await MultipartFile.fromFile(file.path),
-        ));
-      }
-
-      context.read<AddBusinessCubit>().addBusiness(formData);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red.shade700),
+      );
+      return;
     }
+
+    final formData = FormData();
+
+    formData.fields.addAll([
+      MapEntry('user_id', '1'),
+      MapEntry('name', nameController.text),
+      MapEntry('description', descController.text),
+      MapEntry('open_time', openController.text),
+      MapEntry('close_time', closeController.text),
+      MapEntry('address', address ?? ""),
+      MapEntry('category', selectedCategoryGroup!),
+      MapEntry('sub_category', selectedSubCategory!),
+      MapEntry('is_corporate', isCorporate ? '1' : '0'),
+      MapEntry('latitude', latitude.toString()),
+      MapEntry('longitude', longitude.toString()),
+      MapEntry('menu', jsonEncode(services)),
+    ]);
+
+    formData.files.add(MapEntry(
+      'profile_image',
+      await MultipartFile.fromFile(profileImage!.path),
+    ));
+
+    for (var file in detailImages) {
+      formData.files.add(MapEntry(
+        'detail_images[]',
+        await MultipartFile.fromFile(file.path),
+      ));
+    }
+
+    context.read<AddBusinessCubit>().addBusiness(formData);
   }
 
   @override
@@ -182,6 +181,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
       ),
       body: BlocConsumer<AddBusinessCubit, AddBusinessState>(
         listener: (context, state) {
+          if (!mounted) return;
           if (state is AddBusinessSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message), backgroundColor: Colors.green.shade700),
@@ -211,11 +211,8 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 📊 İlerleme göstergesi
                   _buildProgressSection(),
-
                   const SizedBox(height: 16),
-
                   PostBusinessInfoSection(
                     nameController: nameController,
                     descController: descController,
@@ -236,33 +233,30 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                       setState(() => selectedSubCategory = val);
                     },
                   ),
-
                   const SizedBox(height: 16),
                   PostMapSection(
                     latitude: latitude,
                     longitude: longitude,
                     address: address,
-                    onPickLocation: (LatLng latlng, String? address) {
+                    onPickLocation: (LatLng latlng, String? addr) {
                       setState(() {
                         latitude = latlng.latitude;
                         longitude = latlng.longitude;
-                        this.address = address;
+                        address = addr;
                       });
                     },
                   ),
-
                   const SizedBox(height: 16),
                   PostImagesSection(
                     profileImage: profileImage,
                     detailImages: detailImages,
-                    existingProfileImage: null, // Add this
-                    existingDetailImages: const [], // Add this
+                    existingProfileImage: null,
+                    existingDetailImages: const [],
                     onPickProfile: (file) => setState(() => profileImage = file),
                     onPickDetails: (files) => setState(() => detailImages = files),
                     onRemoveDetailImage: (index) => setState(() => detailImages.removeAt(index)),
-                    onRemoveExistingDetailImage: (index) {}, // Add this callback
+                    onRemoveExistingDetailImage: (index) {},
                   ),
-
                   const SizedBox(height: 16),
                   PostMenuSection(
                     services: services,
@@ -272,7 +266,6 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                       setState(() => services[index][key] = value);
                     },
                   ),
-
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: state is AddBusinessLoading ? null : _submit,

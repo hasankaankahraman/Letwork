@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:letwork/data/model/business_detail_model.dart';
 import 'package:letwork/data/model/business_model.dart';
@@ -47,7 +49,30 @@ class BusinessService {
   // Update business details
   Future<Map<String, dynamic>> updateBusiness(FormData formData) async {
     final response = await _dio.post("business/update_business.php", data: formData);
-    return response.data;
+
+    if (response.data['status'] == 'success') {
+      return response.data;
+    } else {
+      throw Exception(response.data['message'] ?? "İşletme güncellenirken bir hata oluştu");
+    }
+  }
+
+  // Update business services separately
+  Future<Map<String, dynamic>> updateBusinessServices(int businessId, int userId, List<Map<String, dynamic>> services) async {
+    FormData formData = FormData();
+    formData.fields.add(MapEntry('business_id', businessId.toString()));
+    formData.fields.add(MapEntry('user_id', userId.toString()));
+
+    // Hizmetleri JSON formatında gönder
+    formData.fields.add(MapEntry('services', jsonEncode(services)));
+
+    final response = await _dio.post("business/update_business.php", data: formData);
+
+    if (response.data['status'] == 'success') {
+      return response.data;
+    } else {
+      throw Exception(response.data['message'] ?? "Hizmetler güncellenirken bir hata oluştu");
+    }
   }
 
   // Delete a business
@@ -97,6 +122,11 @@ class BusinessService {
   // Add a new business
   Future<Map<String, dynamic>> addBusiness(FormData formData) async {
     final response = await _dio.post("business/add_business.php", data: formData);
-    return response.data;
+
+    if (response.data['status'] == 'success') {
+      return response.data;
+    } else {
+      throw Exception(response.data['message'] ?? "İşletme eklenirken bir hata oluştu");
+    }
   }
 }

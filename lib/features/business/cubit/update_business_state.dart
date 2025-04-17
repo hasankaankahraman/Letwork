@@ -1,6 +1,5 @@
-import 'package:meta/meta.dart';
+import 'package:letwork/data/model/business_detail_model.dart';
 
-@immutable
 abstract class UpdateBusinessState {}
 
 class UpdateBusinessInitial extends UpdateBusinessState {}
@@ -8,7 +7,7 @@ class UpdateBusinessInitial extends UpdateBusinessState {}
 class BusinessDetailsLoading extends UpdateBusinessState {}
 
 class BusinessDetailsLoaded extends UpdateBusinessState {
-  final dynamic business;
+  final BusinessDetailModel business;
 
   BusinessDetailsLoaded(this.business);
 }

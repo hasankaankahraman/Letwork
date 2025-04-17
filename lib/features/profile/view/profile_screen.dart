@@ -298,7 +298,7 @@ class ProfileScreen extends StatelessWidget {
                                                   BusinessRepository(),
                                                 ),
                                                 child: UpdateBusinessScreen(
-                                                  businessId: int.parse(business.id),
+                                                  businessId: (business.id),
                                                 ),
                                               ),
                                             ),
