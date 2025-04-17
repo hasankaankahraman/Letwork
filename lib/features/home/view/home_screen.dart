@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:letwork/core/utils/location_helper.dart';
+import 'package:dio/dio.dart';
 import 'package:letwork/data/services/category_service.dart';
 import 'package:letwork/features/home/cubit/home_cubit.dart';
 import 'package:letwork/features/home/widgets/category_row.dart';
@@ -90,10 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       final position = await Geolocator.getCurrentPosition();
-      final city = await LocationHelper.getCityFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
+
+      // 🔥 SADECE şehir adı çekiyoruz (city > town > village)
+      final url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.latitude}&lon=${position.longitude}";
+      final response = await Dio().get(url);
+      final address = response.data['address'];
+      final city = address?['city'] ?? address?['town'] ?? address?['village'];
 
       if (city != null && city.isNotEmpty) {
         Navigator.pop(context);

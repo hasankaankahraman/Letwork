@@ -51,8 +51,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 onSubmitted: (_) => _onSearch(),
                 decoration: InputDecoration(
                   hintText: "İşletme adı girin...",
+                  hintStyle: const TextStyle(color: Colors.black54),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.search, color: Color(0xFFFF0000)),
                     onPressed: _onSearch,
@@ -88,7 +90,8 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.red,
+        backgroundColor: const Color(0xFFFF0000),
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.map),
         label: const Text("Haritadan Ara"),
         onPressed: () {

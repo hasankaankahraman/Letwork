@@ -4,6 +4,7 @@ import 'package:letwork/features/chat/cubit/chat_cubit.dart';
 import 'package:letwork/data/model/business_model.dart';
 import 'package:letwork/data/services/business_service.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String businessId;
@@ -20,12 +21,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   late final Future<BusinessModel> _businessDetails;
   final Color themeColor = const Color(0xFFFF0000);
   bool _isLoading = false;
+  int? _userId;
 
   @override
   void initState() {
     super.initState();
+    _fetchUserId();
     _businessDetails = _fetchBusinessDetails();
     _loadMessages();
+  }
+
+  Future<void> _fetchUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _userId = prefs.getInt('userId');
+      });
+      debugPrint('User ID loaded: $_userId');
+    } catch (e) {
+      debugPrint('Error fetching user ID: $e');
+    }
   }
 
   Future<BusinessModel> _fetchBusinessDetails() async {
@@ -67,11 +82,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final message = _messageController.text.trim();
     if (message.isEmpty || _isLoading) return;
 
+    // Check if user ID is available
+    if (_userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kullanıcı bilgisi bulunamadı. Lütfen tekrar giriş yapın.')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
       await context.read<ChatCubit>().sendMessage(
-        senderId: '1',
+        senderId: _userId.toString(), // Use dynamic user ID instead of hardcoded '1'
         businessId: widget.businessId,
         message: message,
       );
@@ -386,7 +409,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
-        final isMe = message.senderId == '1'; // API'den gelen kullanıcı ID'si
+        final isMe = message.senderId == _userId?.toString(); // Updated to use dynamic user ID
 
         DateTime messageTime;
         try {

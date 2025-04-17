@@ -16,7 +16,9 @@ dependencies:
   # iOS tarzı ikonlar
   cupertino_icons: ^1.0.8
   equatable: ^2.0.7
-  intl: ^0.18.0  # Use the latest version available
+  intl: ^0.20.2  # Use the latest version available
+  flutter_map_location_marker: ^10.0.2
+
 
 
 
@@ -29,7 +31,7 @@ dependencies:
 
   # HARİTA & KONUM
   flutter_map: ^8.1.0             # Leaflet tabanlı harita
-  geolocator: ^9.0.1              # Lokasyon alma
+  geolocator: ^13.0.4              # Lokasyon alma
   latlong2: ^0.9.0                # Koordinat desteği (Map ile uyumlu)
 
   # UI VE RENDER
@@ -40,7 +42,7 @@ dependencies:
 
 
   # ROUTING
-  go_router: ^14.8.1              # Sayfa geçişleri, nested routing
+  go_router: ^15.0.0              # Sayfa geçişleri, nested routing
 
   # TEXT CHECKING
   bad_words: ^0.3.0               # Küfür/swear filter için (yorumlar vs.)
@@ -53,7 +55,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  flutter_launcher_icons: "^0.9.2"
+  flutter_launcher_icons: ^0.14.3
 
 
 flutter:

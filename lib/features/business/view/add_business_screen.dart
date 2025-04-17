@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
@@ -37,13 +38,13 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
 
   bool isCorporate = false;
   bool _isLoading = false;
+  int? userId;
 
   String? selectedCategoryGroup;
   String? selectedSubCategory;
   List<Map<String, dynamic>> categoryGroups = [];
 
   List<Map<String, String>> services = [{"name": "", "price": ""}];
-
 
   final Map<String, bool> _formProgress = {
     'businessInfo': false,
@@ -55,17 +56,15 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
   @override
   void initState() {
     super.initState();
+    _fetchUserId();
     _fetchCategories();
   }
 
-  @override
-  void dispose() {
-    nameController.dispose();
-    descController.dispose();
-    openController.dispose();
-    closeController.dispose();
-    _scrollController.dispose();
-    super.dispose();
+  Future<void> _fetchUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getInt('userId');
+    });
   }
 
   Future<void> _fetchCategories() async {
@@ -102,9 +101,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
           selectedSubCategory != null;
 
       _formProgress['location'] = latitude != null && longitude != null;
-
       _formProgress['images'] = profileImage != null && detailImages.length >= 3;
-
       _formProgress['services'] = services.isNotEmpty &&
           !services.any((s) => s['name']!.isEmpty || s['price']!.isEmpty);
     });
@@ -113,6 +110,13 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
     _updateProgress();
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Kullanıcı bilgisi alınamadı"), backgroundColor: Colors.red),
+      );
+      return;
+    }
 
     if (!_formProgress.values.every((completed) => completed)) {
       final firstIncomplete = _formProgress.entries
@@ -136,7 +140,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
     final formData = FormData();
 
     formData.fields.addAll([
-      MapEntry('user_id', '1'),
+      MapEntry('user_id', userId.toString()),
       MapEntry('name', nameController.text),
       MapEntry('description', descController.text),
       MapEntry('open_time', openController.text),
@@ -197,9 +201,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
           }
         },
         builder: (context, state) {
-          if (_isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          if (_isLoading) return const Center(child: CircularProgressIndicator());
 
           return SingleChildScrollView(
             controller: _scrollController,
@@ -207,10 +209,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
             child: Form(
               key: _formKey,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildProgressSection(),
-                  const SizedBox(height: 16),
                   PostBusinessInfoSection(
                     nameController: nameController,
                     descController: descController,
@@ -227,9 +226,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                         selectedSubCategory = null;
                       });
                     },
-                    onSubCategoryChanged: (val) {
-                      setState(() => selectedSubCategory = val);
-                    },
+                    onSubCategoryChanged: (val) => setState(() => selectedSubCategory = val),
                   ),
                   const SizedBox(height: 16),
                   PostMapSection(
@@ -253,7 +250,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                     onPickProfile: (file) => setState(() => profileImage = file),
                     onPickDetails: (files) => setState(() => detailImages = files),
                     onRemoveDetailImage: (index) => setState(() => detailImages.removeAt(index)),
-                    onRemoveExistingDetailImage: (index) {},
+                    onRemoveExistingDetailImage: (_) {},
                   ),
                   const SizedBox(height: 16),
                   PostMenuSection(
@@ -268,12 +265,10 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                   ElevatedButton(
                     onPressed: state is AddBusinessLoading ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFFF0000),
+                      backgroundColor: const Color(0xFFFF0000),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: state is AddBusinessLoading
                         ? const Row(
@@ -282,10 +277,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                         SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            color: Colors.white,
-                          ),
+                          child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
                         ),
                         SizedBox(width: 12),
                         Text("İşletme Kaydediliyor...", style: TextStyle(fontSize: 16)),
@@ -306,76 +298,6 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildProgressSection() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 8)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("İşletme Ekleme Durumu", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          LinearProgressIndicator(
-            value: _formProgress.values.where((completed) => completed).length / _formProgress.length,
-            backgroundColor: Colors.grey.shade200,
-            color: Color(0xFFFF0000),
-            minHeight: 8,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildProgressIndicator("İşletme\nBilgileri", Icons.business, _formProgress['businessInfo']!),
-              _buildProgressIndicator("Konum", Icons.location_on, _formProgress['location']!),
-              _buildProgressIndicator("Fotoğraflar", Icons.image, _formProgress['images']!),
-              _buildProgressIndicator("Hizmetler", Icons.room_service, _formProgress['services']!),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressIndicator(String label, IconData icon, bool completed) {
-    return Column(
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: completed ? Colors.green.shade50 : Colors.grey.shade100,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: completed ? Colors.green : Colors.grey.shade300,
-              width: 2,
-            ),
-          ),
-          child: Icon(
-            completed ? Icons.check : icon,
-            color: completed ? Colors.green : Colors.grey.shade500,
-            size: 24,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            color: completed ? Colors.green.shade700 : Colors.grey.shade700,
-            fontWeight: completed ? FontWeight.w500 : FontWeight.normal,
-          ),
-        ),
-      ],
     );
   }
 }

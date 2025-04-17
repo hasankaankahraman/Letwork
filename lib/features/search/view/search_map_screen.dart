@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:letwork/core/utils/location_helper.dart';
 import 'package:letwork/data/services/location_service.dart';
@@ -22,29 +23,33 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
   final TextEditingController _cityController = TextEditingController();
   Timer? _debounce;
 
-  LatLng _center = LatLng(38.4237, 27.1428); // Default: İzmir
+  LatLng _center = LatLng(38.4237, 27.1428); // İzmir başlangıç
 
   @override
   void initState() {
     super.initState();
-    _initLocation();
+    _goToCurrentLocation(fetchBusinesses: true);
   }
 
-  Future<void> _initLocation() async {
+  Future<void> _goToCurrentLocation({bool fetchBusinesses = false}) async {
     try {
       final position = await LocationService.getCurrentLocation();
       final center = LatLng(position.latitude, position.longitude);
+
       setState(() => _center = center);
       _mapController.move(center, 13);
 
-      // ignore: use_build_context_synchronously
-      final cubit = context.read<SearchCubit>();
-      cubit.fetchBusinessesByRadius(
-        latitude: center.latitude,
-        longitude: center.longitude,
-      );
+      if (fetchBusinesses) {
+        context.read<SearchCubit>().fetchBusinessesByRadius(
+          latitude: center.latitude,
+          longitude: center.longitude,
+        );
+      }
     } catch (e) {
       debugPrint("❌ Konum alınamadı: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Konum alınamadı")),
+      );
     }
   }
 
@@ -54,8 +59,7 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
       setState(() => _center = location);
       _mapController.move(location, 13);
 
-      final cubit = context.read<SearchCubit>();
-      cubit.fetchBusinessesByRadius(
+      context.read<SearchCubit>().fetchBusinessesByRadius(
         latitude: location.latitude,
         longitude: location.longitude,
       );
@@ -101,9 +105,6 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                         ? "https://letwork.hasankaan.com/${business.profileImage}"
                         : "https://letwork.hasankaan.com/assets/default_profile.png",
                   ),
-                  onBackgroundImageError: (_, __) {
-                    debugPrint('🖼️ Profil resmi yüklenemedi');
-                  },
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -142,14 +143,14 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
             ),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF0000), // 🔴 Kırmızı
-                foregroundColor: Colors.white, // 🤍 İkon ve yazı rengi
+                backgroundColor: const Color(0xFFFF0000),
+                foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 52),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              icon: const Icon(Icons.arrow_forward, color: Colors.white), // İkon rengi beyaz
+              icon: const Icon(Icons.arrow_forward),
               label: const Text("Detaylara Git"),
               onPressed: () {
                 Navigator.pop(context);
@@ -210,7 +211,7 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                 ElevatedButton(
                   onPressed: () => _searchByCity(_cityController.text),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF0000), // 🔴 Kırmızı
+                    backgroundColor: const Color(0xFFFF0000),
                     foregroundColor: Colors.white,
                   ),
                   child: const Text("Git"),
@@ -232,14 +233,29 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                       latitude: center.latitude,
                       longitude: center.longitude,
                     );
-                                    });
+                  });
                 },
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  subdomains: ['a', 'b', 'c'],
                   userAgentPackageName: 'com.example.letwork',
                 ),
+
+                // 📍 Kendi konumun marker'ı (auto follow açık, özel stil)
+                CurrentLocationLayer(
+                  style: LocationMarkerStyle(
+                    marker: const DefaultLocationMarker(
+                      child: Icon(Icons.navigation, color: Colors.white),
+                    ),
+                    markerSize: const Size(40, 40),
+                    markerDirection: MarkerDirection.heading,
+                    accuracyCircleColor: Colors.blue.withOpacity(0.3),
+                  ),
+                ),
+
+                // 🏢 İşletme marker'ları
                 BlocBuilder<SearchCubit, SearchState>(
                   builder: (context, state) {
                     return MarkerLayer(
@@ -261,6 +277,12 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFFF0000),
+        foregroundColor: Colors.white,
+        onPressed: () => _goToCurrentLocation(),
+        child: const Icon(Icons.my_location),
       ),
     );
   }
