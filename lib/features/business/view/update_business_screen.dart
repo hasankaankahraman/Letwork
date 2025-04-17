@@ -65,14 +65,25 @@ class _UpdateBusinessScreenState extends State<UpdateBusinessScreen> {
     address = business.address;
 
     userId = int.tryParse(business.userId);
-
     existingProfileImage = business.profileImageUrl;
-    existingDetailImages = business.detailImages;
+    existingDetailImages = business.detailImages.map((url) =>
+    url.startsWith('http') ? url : "https://letwork.hasankaan.com/$url"
+    ).toList();
 
-    services = business.services.map<Map<String, String>>((s) => {
-      "name": s["service_name"]?.toString() ?? '',
-      "price": s["price"]?.toString() ?? '',
-    }).toList();
+    // Menü veya servis verisiyle formu doldur
+    if (business.menu.isNotEmpty) {
+      services = business.menu.map<Map<String, String>>((item) => {
+        "name": item["name"]?.toString() ?? "",
+        "price": item["price"]?.toString() ?? "",
+      }).toList();
+    } else if (business.services.isNotEmpty) {
+      services = business.services.map<Map<String, String>>((s) => {
+        "name": s["service_name"]?.toString() ?? '',
+        "price": s["price"]?.toString() ?? '',
+      }).toList();
+    } else {
+      services = [{"name": "", "price": ""}];
+    }
 
     final validGroup = categoryGroups.any((g) => g['group'] == business.category);
     selectedCategoryGroup = validGroup ? business.category : null;
@@ -85,6 +96,7 @@ class _UpdateBusinessScreenState extends State<UpdateBusinessScreen> {
     final validSub = group['items'].contains(business.subCategory);
     selectedSubCategory = validSub ? business.subCategory : null;
   }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 

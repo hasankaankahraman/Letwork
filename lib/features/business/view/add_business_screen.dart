@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:letwork/features/business/view/business_detail_screen.dart';
 import 'package:letwork/features/business/widgets/post_businessinfo_section.dart';
@@ -45,7 +44,6 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
 
   List<Map<String, String>> services = [{"name": "", "price": ""}];
 
-  final ImagePicker _picker = ImagePicker();
 
   final Map<String, bool> _formProgress = {
     'businessInfo': false,

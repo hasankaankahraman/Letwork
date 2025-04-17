@@ -8,7 +8,7 @@ class BusinessDetailModel {
   final String address;
   final String openTime;
   final String closeTime;
-  final List<dynamic> images;
+  final List<dynamic> images; // ✅ List<Map> yerine List<dynamic> tanımladık
   final List<dynamic> menu;
   final List<dynamic> services;
   final double latitude;
@@ -19,7 +19,6 @@ class BusinessDetailModel {
   final bool isCorporate;
   final List<String> detailImages;
 
-  // Yeni alanlar
   final String? phone;
   final String? email;
   final String? website;
@@ -50,10 +49,24 @@ class BusinessDetailModel {
   });
 
   factory BusinessDetailModel.fromJson(Map<String, dynamic> json) {
-    final menuRaw = json['menu'];
-    final imagesRaw = json['images'];
-    final servicesRaw = json['services'];
-    final detailImagesRaw = json['detail_images'];
+    final imagesRaw = json['images'] ?? [];
+
+    // JSON'dan gelen resimleri güvenli şekilde parse et
+    final List<Map<String, dynamic>> parsedImages = imagesRaw is List
+        ? imagesRaw
+        .whereType<Map<String, dynamic>>()
+        .toList()
+        : [];
+
+    final profile = parsedImages.firstWhere(
+          (img) => img['is_profile'] == 1,
+      orElse: () => {"image_url": ""},
+    );
+
+    final detailImgs = parsedImages
+        .where((img) => img['is_profile'] == 0)
+        .map<String>((img) => img['image_url'].toString())
+        .toList();
 
     return BusinessDetailModel(
       id: json['id'].toString(),
@@ -65,16 +78,16 @@ class BusinessDetailModel {
       address: json['address'] ?? '',
       openTime: json['open_time'] ?? '',
       closeTime: json['close_time'] ?? '',
-      images: imagesRaw is List ? imagesRaw : [],
-      menu: menuRaw is List ? menuRaw : [],
-      services: servicesRaw is List ? servicesRaw : [],
+      images: imagesRaw, // 💥 burası artık List<dynamic>
+      menu: json['menu'] is List ? json['menu'] : [],
+      services: json['services'] is List ? json['services'] : [],
       latitude: double.tryParse(json['latitude'].toString()) ?? 0.0,
       longitude: double.tryParse(json['longitude'].toString()) ?? 0.0,
-      profileImage: json['profile_image'] ?? '',
+      profileImage: profile['image_url'] ?? '',
+      detailImages: detailImgs,
       ownerName: json['owner_name'] ?? '',
-      isFavorite: json['is_favorite'] == true || json['is_favorite'] == 1,
       isCorporate: json['is_corporate'] == 1,
-      detailImages: detailImagesRaw is List ? List<String>.from(detailImagesRaw) : [],
+      isFavorite: json['is_favorite'] == true || json['is_favorite'] == 1,
       phone: json['phone'],
       email: json['email'],
       website: json['website'],

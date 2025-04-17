@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:letwork/data/model/chat_model.dart';
 import 'package:letwork/features/chat/repository/chat_repository.dart';
 
 part 'chat_state.dart';

@@ -22,7 +22,7 @@ class ReviewSection extends StatelessWidget {
           return Center(child: Text(state.message));
         } else if (state is ReviewLoaded) {
           final reviews = state.reviews;
-          final averageRating = state.averageRating ?? 0.0;
+          final averageRating = state.averageRating;
 
           return FutureBuilder<int?>(
             future: UserSession.getUserId(),
@@ -57,7 +57,7 @@ class ReviewSection extends StatelessWidget {
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       child: hasUserReview
-                          ? _buildUserReview(context, userReview!, currentUserId)
+                          ? _buildUserReview(context, userReview, currentUserId)
                           : _buildAddReviewButton(context, currentUserId),
                     ),
 
@@ -178,6 +178,7 @@ class ReviewSection extends StatelessWidget {
         side: BorderSide(color: Colors.red.shade100, width: 1.5), // Kırmızı tema
       ),
       elevation: 0,
+      // ignore: deprecated_member_use
       color: Colors.red.withOpacity(0.03),
       child: Padding(
         padding: const EdgeInsets.all(16.0),

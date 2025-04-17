@@ -37,6 +37,7 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
       setState(() => _center = center);
       _mapController.move(center, 13);
 
+      // ignore: use_build_context_synchronously
       final cubit = context.read<SearchCubit>();
       cubit.fetchBusinessesByRadius(
         latitude: center.latitude,
@@ -227,13 +228,11 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                   if (_debounce?.isActive ?? false) _debounce?.cancel();
                   _debounce = Timer(const Duration(milliseconds: 500), () {
                     final center = pos.center;
-                    if (center != null) {
-                      cubit.fetchBusinessesByRadius(
-                        latitude: center.latitude,
-                        longitude: center.longitude,
-                      );
-                    }
-                  });
+                    cubit.fetchBusinessesByRadius(
+                      latitude: center.latitude,
+                      longitude: center.longitude,
+                    );
+                                    });
                 },
               ),
               children: [

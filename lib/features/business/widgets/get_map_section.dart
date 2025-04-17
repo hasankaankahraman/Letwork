@@ -149,7 +149,7 @@ class MapSection extends StatelessWidget {
             const SizedBox(height: 8),
 
             /// 🔴 Adres
-            if (business.address != null && business.address!.isNotEmpty)
+            if (business.address.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Row(

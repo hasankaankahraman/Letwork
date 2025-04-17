@@ -12,7 +12,6 @@ import 'package:letwork/features/home/repository/home_repository.dart';
 import 'package:letwork/features/favorites/repository/favorites_repository.dart';
 import 'package:letwork/features/home/view/home_screen.dart';
 import 'package:letwork/features/main_wrapper/custom_bottom_navbar.dart';
-import 'package:letwork/features/main_wrapper/main_wrapper_screen.dart';
 import 'package:letwork/features/profile/view/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';  // MainWrapperScreen'i import ediyoruz.
 
@@ -25,7 +24,6 @@ class MainWrapperScreen extends StatefulWidget {
 
 class _MainWrapperScreenState extends State<MainWrapperScreen> {
   int _currentIndex = 0;
-  int _previousIndex = 0;
   String? userId;
   late FavoritesCubit _favoritesCubit;
 
@@ -48,7 +46,6 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
   void _onTabSelected(int index) {
     if (_currentIndex != index) {
       setState(() {
-        _previousIndex = _currentIndex;
         _currentIndex = index;
       });
 

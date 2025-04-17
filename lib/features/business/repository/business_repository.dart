@@ -49,7 +49,7 @@ class BusinessRepository {
     try {
       final response = await _service.fetchUserBusinesses(userId);
       // Dönüşüm işlemi: List<dynamic> -> List<BusinessModel>
-      return (response as List).map((business) => BusinessModel.fromJson(business)).toList();
+      return (response).map((business) => BusinessModel.fromJson(business)).toList();
     } catch (e) {
       throw Exception('Kullanıcıya ait işletmeler alınırken bir hata oluştu: $e');
     }
@@ -153,7 +153,7 @@ class BusinessRepository {
     try {
       final response = await _service.searchBusinesses(query);
       // Dönüşüm işlemi: List<dynamic> -> List<BusinessModel>
-      return (response as List).map((business) => BusinessModel.fromJson(business)).toList();
+      return (response).map((business) => BusinessModel.fromJson(business)).toList();
     } catch (e) {
       throw Exception('İşletmeler ararken bir hata oluştu: $e');
     }
@@ -163,7 +163,7 @@ class BusinessRepository {
     try {
       final response = await _service.getBusinessesByCategory(category);
       // Dönüşüm işlemi: List<dynamic> -> List<BusinessModel>
-      return (response as List).map((business) => BusinessModel.fromJson(business)).toList();
+      return (response).map((business) => BusinessModel.fromJson(business)).toList();
     } catch (e) {
       throw Exception('Kategoriye göre işletmeler alınırken bir hata oluştu: $e');
     }

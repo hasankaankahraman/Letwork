@@ -269,7 +269,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                business.name ?? 'İşletme',
+                business.name,
                 style: const TextStyle(
                   color: Colors.black87,
                   fontWeight: FontWeight.w600,

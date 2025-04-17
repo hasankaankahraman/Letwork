@@ -191,13 +191,11 @@ class ReviewCard extends StatelessWidget {
 
     // Format date if available
     String formattedDate = '';
-    if (review.createdAt != null) {
-      try {
-        final date = review.createdAt!;
-        formattedDate = DateFormat('dd MMM yyyy').format(date as DateTime);
-      } catch (e) {
-        // Handle date formatting errors silently
-      }
+    try {
+      final date = review.createdAt;
+      formattedDate = DateFormat('dd MMM yyyy').format(date as DateTime);
+    } catch (e) {
+      // Handle date formatting errors silently
     }
 
     return Container(

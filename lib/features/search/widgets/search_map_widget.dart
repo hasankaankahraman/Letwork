@@ -14,12 +14,10 @@ class SearchMapWidget extends StatefulWidget {
 
 class _SearchMapWidgetState extends State<SearchMapWidget> {
   final MapController _mapController = MapController();
-  late final MapCamera _camera;
 
   @override
   void initState() {
     super.initState();
-    _camera = _mapController.camera;
   }
 
   @override

@@ -1,7 +1,6 @@
 // lib/core/utils/image_utils.dart
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:image_picker/image_picker.dart';
 
 class ImageUtils {
   static Future<MultipartFile?> convertFileToMultipart(File? file) async {
