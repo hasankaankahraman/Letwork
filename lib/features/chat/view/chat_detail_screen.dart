@@ -18,28 +18,60 @@ class ChatDetailScreen extends StatefulWidget {
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  late final Future<BusinessModel> _businessDetails;
+  // Changed from late Future to nullable Future
+  Future<BusinessModel>? _businessDetails;
   final Color themeColor = const Color(0xFFFF0000);
   bool _isLoading = false;
   int? _userId;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserId();
-    _businessDetails = _fetchBusinessDetails();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    await _fetchUserId(); // Önce kullanıcı ID'sini bekle
+
+    // Initialize _businessDetails after fetching userId
+    setState(() {
+      _businessDetails = _fetchBusinessDetails();
+      _isInitialized = true;
+      _isLoading = false;
+    });
+
     _loadMessages();
   }
 
   Future<void> _fetchUserId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      setState(() {
-        _userId = prefs.getInt('userId');
-      });
-      debugPrint('User ID loaded: $_userId');
+      final userId = prefs.getInt('userId');
+
+      debugPrint("🧪 Mesaj ekranında SharedPreferences'tan gelen userId: $userId");
+
+      if (userId != null) {
+        setState(() {
+          _userId = userId;
+        });
+        debugPrint('✅ User ID loaded into state: $_userId');
+      } else {
+        debugPrint('❌ User ID not found in SharedPreferences');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Kullanıcı bilgisi bulunamadı. Lütfen tekrar giriş yapın.')),
+            );
+          }
+        });
+      }
     } catch (e) {
-      debugPrint('Error fetching user ID: $e');
+      debugPrint('🚨 Error fetching user ID: $e');
     }
   }
 
@@ -80,9 +112,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   void _sendMessage() async {
     final message = _messageController.text.trim();
-    if (message.isEmpty || _isLoading) return;
+    if (message.isEmpty || _isLoading || !_isInitialized) return;
 
-    // Check if user ID is available
+    // Kullanıcı ID kontrolü
     if (_userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Kullanıcı bilgisi bulunamadı. Lütfen tekrar giriş yapın.')),
@@ -93,8 +125,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     setState(() => _isLoading = true);
 
     try {
+      debugPrint('Sending message with user ID: $_userId');
+
       await context.read<ChatCubit>().sendMessage(
-        senderId: _userId.toString(), // Use dynamic user ID instead of hardcoded '1'
+        senderId: _userId.toString(), // String'e dönüştürme
         businessId: widget.businessId,
         message: message,
       );
@@ -112,9 +146,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         }
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Mesaj gönderilirken hata oluştu: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Mesaj gönderilirken hata oluştu: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -149,7 +185,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         onPressed: () => Navigator.of(context).pop(),
       ),
       titleSpacing: 0,
-      title: FutureBuilder<BusinessModel>(
+      title: _isInitialized
+          ? FutureBuilder<BusinessModel>(
         future: _businessDetails,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -178,6 +215,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             );
           }
         },
+      )
+          : Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: themeColor,
+          ),
+        ),
       ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1.0),
@@ -409,15 +456,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
-        final isMe = message.senderId == _userId?.toString(); // Updated to use dynamic user ID
+        final isMe = message.senderId == _userId?.toString(); // Dynamic kullanıcı ID
 
         DateTime messageTime;
+
         try {
-          messageTime = DateTime.parse(message.createdAt);
+          if (message.createdAt is DateTime) {
+            messageTime = message.createdAt;
+          } else {
+            messageTime = DateTime.parse(message.createdAt.toString());
+          }
         } catch (e) {
           messageTime = DateTime.now();
           debugPrint('Tarih dönüştürme hatası: $e');
         }
+
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),

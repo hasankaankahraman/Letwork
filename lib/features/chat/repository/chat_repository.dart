@@ -4,16 +4,15 @@ import 'package:letwork/data/model/chat_model.dart';
 class ChatRepository {
   final ChatService _chatService = ChatService();
 
-  // Sohbet listesini getir
-  Future<List<ChatModel>> getChatList() {
-    return _chatService.fetchChatList();
+  // userId parametresiyle sohbet listesini getir
+  Future<List<ChatModel>> getChatList({required int userId}) {
+    return _chatService.fetchChatList(userId: userId);
   }
 
   // Belirli bir işletme ile olan mesajları getir
   Future<List<ChatModel>> getMessages(String businessId) {
     return _chatService.fetchMessages(businessId);
   }
-
 
   // Mesaj gönder
   Future<Map<String, dynamic>> sendMessage({

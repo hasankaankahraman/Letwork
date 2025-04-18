@@ -6,36 +6,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ChatService {
   final Dio _dio = DioClient().dio;
 
-  // Get current user ID
+  // SharedPreferences'tan userId çek
   Future<int> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    // Get the user ID with a default fallback of "1" if not found
-    String userId = prefs.getString('user_id') ?? '1';
-
-    // Make sure we don't return an empty string and handle any non-numeric values
-    if (userId.isEmpty) {
-      userId = '1';  // Fallback to 1 if the user_id is empty
-    }
-
-    // Safely attempt to parse the userId to an integer
-    int parsedUserId = int.tryParse(userId) ?? 1;  // Default to 1 if parsing fails
-    print("UserId after parsing: $parsedUserId");
-
-    return parsedUserId;
+    final userId = prefs.getInt('userId') ?? 1;
+    print("🧠 SharedPreferences'tan alınan userId: $userId");
+    return userId;
   }
 
   // Sohbet listesini getir
-  Future<List<ChatModel>> fetchChatList() async {
+  Future<List<ChatModel>> fetchChatList({required int userId}) async {
     try {
-      // Make sure we have a valid user ID
-      int userId = await getUserId();
+      print("📨 fetchChatList için userId: $userId");
 
-      // Log the user ID for debugging
-      print("Fetching chats for user ID: $userId");
-
-      final response = await _dio.get("chat/get_user_chats.php", queryParameters: {
-        "user_id": userId.toString(),
-      });
+      final response = await _dio.get(
+        "chat/get_user_chats.php",
+        queryParameters: {"user_id": userId.toString()},
+      );
 
       if (response.data['status'] == 'success') {
         final List data = response.data['data'];
@@ -44,20 +31,22 @@ class ChatService {
         throw Exception(response.data['message'] ?? "Sohbet listesi alınamadı.");
       }
     } catch (e) {
-      // Better error logging
-      print("Chat list fetch error: $e");
+      print("❌ Chat list fetch error: $e");
       throw Exception("Sohbet listesi alınamadı: $e");
     }
   }
 
-  // İşletme ile mesajları çekme
+  // Mesajları getir
   Future<List<ChatModel>> fetchMessages(String businessId) async {
     try {
-      int userId = await getUserId();
-      final response = await _dio.get("chat/get_messages.php", queryParameters: {
-        "business_id": businessId,
-        "user_id": userId.toString(),
-      });
+      final userId = await getUserId();
+      final response = await _dio.get(
+        "chat/get_messages.php",
+        queryParameters: {
+          "business_id": businessId,
+          "user_id": userId.toString(),
+        },
+      );
 
       if (response.data['status'] == 'success') {
         final List data = response.data['data'];
@@ -66,26 +55,22 @@ class ChatService {
         throw Exception(response.data['message'] ?? "Mesajlar alınamadı.");
       }
     } catch (e) {
-      print("Messages fetch error: $e");
+      print("❌ Messages fetch error: $e");
       throw Exception("Mesajlar alınamadı: $e");
     }
   }
 
-  // Mesaj gönderme
+  // Mesaj gönder
   Future<Map<String, dynamic>> sendMessage({
     required String senderId,
     required String businessId,
     required String message,
   }) async {
     try {
-      // Convert senderId to int
-      int senderIdInt = await getUserId();  // Get the userId from SharedPreferences
-      print("Sending message from userId: $senderIdInt");
-
       final response = await _dio.post(
         "chat/send_message.php",
         data: {
-          "sender_id": senderIdInt,  // Correct type of sender_id
+          "sender_id": senderId,
           "business_id": businessId,
           "message": message,
         },
@@ -97,7 +82,7 @@ class ChatService {
         throw Exception(response.data['message'] ?? "Mesaj gönderilemedi.");
       }
     } catch (e) {
-      print("Send message error: $e");
+      print("❌ Send message error: $e");
       throw Exception("Mesaj gönderilemedi: $e");
     }
   }
@@ -107,9 +92,7 @@ class ChatService {
     try {
       final response = await _dio.post(
         "chat/mark_message_read.php",
-        data: {
-          "message_id": messageId,
-        },
+        data: {"message_id": messageId},
       );
 
       if (response.data['status'] == 'success') {
@@ -118,7 +101,7 @@ class ChatService {
         throw Exception(response.data['message'] ?? "Mesaj okundu olarak işaretlenemedi.");
       }
     } catch (e) {
-      print("Mark message read error: $e");
+      print("❌ Mark message read error: $e");
       throw Exception("Mesaj okundu olarak işaretlenemedi: $e");
     }
   }
@@ -126,12 +109,10 @@ class ChatService {
   // Tüm mesajları okundu olarak işaretle
   Future<Map<String, dynamic>> markAllMessagesAsRead() async {
     try {
-      int userId = await getUserId();
+      final userId = await getUserId();
       final response = await _dio.post(
         "chat/mark_all_messages_read.php",
-        data: {
-          "user_id": userId.toString(),
-        },
+        data: {"user_id": userId.toString()},
       );
 
       if (response.data['status'] == 'success') {
@@ -140,7 +121,7 @@ class ChatService {
         throw Exception(response.data['message'] ?? "Mesajlar okundu olarak işaretlenemedi.");
       }
     } catch (e) {
-      print("Mark all messages read error: $e");
+      print("❌ Mark all messages read error: $e");
       throw Exception("Mesajlar okundu olarak işaretlenemedi: $e");
     }
   }
@@ -148,7 +129,7 @@ class ChatService {
   // Sohbeti sil
   Future<Map<String, dynamic>> deleteChat(String businessId) async {
     try {
-      int userId = await getUserId();
+      final userId = await getUserId();
       final response = await _dio.delete(
         "chat/delete_chat.php",
         data: {
@@ -163,7 +144,7 @@ class ChatService {
         throw Exception(response.data['message'] ?? "Sohbet silinemedi.");
       }
     } catch (e) {
-      print("Delete chat error: $e");
+      print("❌ Delete chat error: $e");
       throw Exception("Sohbet silinemedi: $e");
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:letwork/features/main_wrapper/main_wrapper_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:letwork/features/business/view/business_detail_screen.dart';
@@ -428,7 +429,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> with AutomaticKeepAli
                     ElevatedButton.icon(
                       onPressed: () {
                         // Ana sayfaya yönlendirme
-                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (context) => const MainWrapperScreen(),
+                          ),
+                              (route) => false, // Tüm route stack'i temizle
+                        );
                       },
                       icon: const Icon(Icons.search, color: Colors.white),
                       label: const Text("İşletmeleri Keşfet"),

@@ -13,6 +13,8 @@ import 'package:letwork/features/profile/view/profile_edit_screen.dart';
 import 'package:letwork/features/business/repository/business_repository.dart';
 import 'package:letwork/features/business/cubit/update_business_cubit.dart';
 import 'package:letwork/features/business/view/update_business_screen.dart';
+import 'package:letwork/features/business/view/add_business_screen.dart';
+import 'package:letwork/features/business/cubit/add_business_cubit.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -240,7 +242,18 @@ class ProfileScreen extends StatelessWidget {
                                 const SizedBox(height: 16),
                                 ElevatedButton(
                                   onPressed: () {
-                                    Navigator.pushNamed(context, '/add-business');
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => BlocProvider(
+                                          create: (_) => AddBusinessCubit(),
+                                          child: const AddBusinessScreen(),
+                                        ),
+                                      ),
+                                    ).then((_) {
+                                      // İşletme eklendiğinde listeyi yenile
+                                      context.read<ProfileCubit>().fetchMyBusinesses();
+                                    });
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryColor,
@@ -250,7 +263,14 @@ class ProfileScreen extends StatelessWidget {
                                     ),
                                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                   ),
-                                  child: const Text("İşletme Ekle"),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(Icons.add_business, color: Colors.white),
+                                      SizedBox(width: 8),
+                                      Text("İşletme Ekle"),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),

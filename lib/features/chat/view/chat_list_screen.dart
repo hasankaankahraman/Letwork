@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:letwork/features/chat/cubit/chat_cubit.dart';
 import 'package:letwork/features/chat/view/chat_detail_screen.dart';
 import 'package:intl/intl.dart';
+import 'package:letwork/features/main_wrapper/main_wrapper_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -312,10 +313,20 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
               elevation: 0,
             ),
-            icon: const Icon(Icons.explore),
+            icon: const Icon(Icons.explore, color: Colors.white),
             label: const Text('İşletmelere Göz At'),
             onPressed: () {
-              // İşletmelere göz at butonuna basıldığında yapılacak işlem
+              // MainWrapperScreen'e git ve home tab'ını seç
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const MainWrapperScreen(),
+                ),
+                    (route) => false, // Tüm route stack'i temizle
+              );
+
+              // Eğer MainWrapperScreen'de bir tab controller varsa,
+              // o tabı seçmek için gerekli parametreyi iletebilirsiniz
+              // Örnek: MainWrapperScreen(initialTabIndex: 0)
             },
           ),
         ],
