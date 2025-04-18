@@ -1,416 +1,357 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:dio/dio.dart';
+import 'package:letwork/core/utils/location_helper.dart';
+import 'package:letwork/data/services/location_service.dart';
 
 class MapLocationPickerScreen extends StatefulWidget {
-  const MapLocationPickerScreen({super.key});
+  final LatLng? initialPosition;
+
+  const MapLocationPickerScreen({Key? key, this.initialPosition}) : super(key: key);
 
   @override
   State<MapLocationPickerScreen> createState() => _MapLocationPickerScreenState();
 }
 
 class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
-  LatLng _pickedLocation = LatLng(41.0082, 28.9784); // İstanbul
-  final MapController _mapController = MapController();
   final TextEditingController _searchController = TextEditingController();
+  final MapController _mapController = MapController();
+
+  LatLng? _selectedPosition;
+  String? _address;
+  bool _isLoading = false;
   bool _isSearching = false;
-  String? _currentAddress;
+  String? _searchError;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPosition = widget.initialPosition;
+    if (_selectedPosition != null) {
+      _getAddressFromCoordinates(_selectedPosition!);
+    }
+  }
 
   Future<void> _searchLocation(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchError = null;
+        _isSearching = false;
+      });
+      return;
+    }
+
     setState(() {
       _isSearching = true;
+      _searchError = null;
     });
 
-    final url = Uri.parse("https://nominatim.openstreetmap.org/search?q=$query&format=json&limit=1");
-
     try {
-      final response = await http.get(url, headers: {
-        'User-Agent': 'letwork-app'
-      });
+      final coordinates = await LocationHelper.getCoordinatesFromCity(query);
 
-      if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body);
-        if (data.isNotEmpty) {
-          final lat = double.parse(data[0]['lat']);
-          final lon = double.parse(data[0]['lon']);
-
-          setState(() {
-            _pickedLocation = LatLng(lat, lon);
-            _mapController.move(_pickedLocation, 15);
-          });
-
-          // Get address for the location
-          _currentAddress = await _getAddressFromCoordinates(lat, lon);
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text("Konum bulunamadı"),
-                backgroundColor: Colors.red.shade700,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            );
-          }
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text("Arama sırasında bir hata oluştu"),
-            backgroundColor: Colors.red.shade700,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
+      if (coordinates == null) {
         setState(() {
+          _searchError = "Konum bulunamadı";
           _isSearching = false;
         });
+        return;
       }
+
+      setState(() {
+        _selectedPosition = coordinates;
+        _isSearching = false;
+      });
+
+      _mapController.move(coordinates, 13);
+      _getAddressFromCoordinates(coordinates);
+    } catch (e) {
+      setState(() {
+        _searchError = "Arama sırasında bir hata oluştu";
+        _isSearching = false;
+      });
+      debugPrint("Konum arama hatası: $e");
     }
   }
 
-  Future<void> _selectLocation() async {
-    final address = _currentAddress ?? await _getAddressFromCoordinates(
-      _pickedLocation.latitude,
-      _pickedLocation.longitude,
-    );
-
-    if (!mounted) return;
-
-    Navigator.pop(context, {
-      "latlng": _pickedLocation,
-      "address": address,
+  Future<void> _getAddressFromCoordinates(LatLng position) async {
+    setState(() {
+      _isLoading = true;
     });
-  }
-
-  Future<String?> _getAddressFromCoordinates(double lat, double lon) async {
-    final dio = Dio();
-    final url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$lat&lon=$lon";
 
     try {
-      setState(() {
-        _isSearching = true;
-      });
-
-      final response = await dio.get(
-        url,
-        options: Options(
-          headers: {
-            'User-Agent': 'letwork-app/1.0 (letwork@example.com)',
-          },
-        ),
+      final city = await LocationHelper.getCityFromCoordinates(
+          position.latitude,
+          position.longitude
       );
 
-      final address = response.data['address'];
-      print("📍 [Koordinat]: ($lat, $lon)");
-      print("🌍 [Adres verisi]: $address");
-
-      final parts = [
-        address['suburb'],
-        address['road'],
-        address['amenity'],
-        address['town'] ?? address['city'],
-        address['province'],
-      ];
-
-      return parts.whereType<String>().join(', ');
+      setState(() {
+        _address = city;
+        _isLoading = false;
+      });
     } catch (e) {
-      print("❌ Adres alınamadı: $e");
-      return null;
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSearching = false;
-        });
-      }
+      setState(() {
+        _address = null;
+        _isLoading = false;
+      });
+      debugPrint("Adres alma hatası: $e");
     }
   }
 
-  void _updateLocationFromMap(LatLng position) async {
+  void _onMapTap(TapPosition tapPosition, LatLng point) {
     setState(() {
-      _pickedLocation = position;
-      _currentAddress = null;
+      _selectedPosition = point;
     });
-
-    // Update address after a short delay to avoid too many requests
-    await Future.delayed(const Duration(milliseconds: 500));
-    _currentAddress = await _getAddressFromCoordinates(
-      position.latitude,
-      position.longitude,
-    );
-    if (mounted) setState(() {});
+    _getAddressFromCoordinates(point);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
+      appBar: AppBar(
+        title: const Text("Konum Seç"),
+        backgroundColor: Colors.white,
+        elevation: 1,
+      ),
+      body: Column(
         children: [
-          // Map
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _pickedLocation,
-              initialZoom: 13,
-              onTap: (tapPosition, latlng) {
-                _updateLocationFromMap(latlng);
-              },
+          // Search Bar
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                ),
+              ],
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: _pickedLocation,
-                    width: 50,
-                    height: 50,
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 42,
-                          width: 42,
-                          decoration: BoxDecoration(
-                            color: Color(0xFFFF0000).withOpacity(0.9),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 2,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.location_on,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        Container(
-                          width: 12,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: Color(0xFFFF0000).withOpacity(0.9),
-                            borderRadius: const BorderRadius.vertical(
-                              bottom: Radius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          // Custom appbar and search
-          SafeArea(
             child: Column(
               children: [
-                // Appbar
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: "Şehir, ilçe veya semt ara",
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _isSearching
+                        ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFFF0000),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: "Konum ara...",
-                            border: InputBorder.none,
-                            suffixIcon: _isSearching
-                                ? Container(
-                              width: 20,
-                              height: 20,
-                              margin: const EdgeInsets.all(12),
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                                : IconButton(
-                              icon: const Icon(Icons.search),
-                              onPressed: () {
-                                final query = _searchController.text.trim();
-                                if (query.isNotEmpty) {
-                                  _searchLocation(query);
-                                }
-                              },
-                            ),
-                          ),
-                          onSubmitted: (query) {
-                            if (query.isNotEmpty) {
-                              _searchLocation(query);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Location info box (address)
-                if (_currentAddress != null)
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
+                    )
+                        : (_searchController.text.isNotEmpty
+                        ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _searchError = null;
+                        });
+                      },
+                    )
+                        : null),
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              color: Color(0xFFFF0000),
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              "Seçilen Konum",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _currentAddress!,
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "${_pickedLocation.latitude.toStringAsFixed(5)}, ${_pickedLocation.longitude.toStringAsFixed(5)}",
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFFF0000)),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  onSubmitted: _searchLocation,
+                ),
+                if (_searchError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      _searchError!,
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
               ],
             ),
           ),
 
-          // Bottom confirmation
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    "Konum Seçin",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+          // Map Area
+          Expanded(
+            child: Stack(
+              children: [
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: _selectedPosition ?? const LatLng(39.925533, 32.866287),
+                    initialZoom: 13,
+                    onTap: _onMapTap,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    "Harita üzerinde istediğiniz konumu seçin veya arama çubuğunu kullanarak konum arayın.",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      subdomains: const ['a', 'b', 'c'],
+                      userAgentPackageName: 'com.example.letwork',
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _selectLocation,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFFF0000),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isSearching
-                        ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                    if (_selectedPosition != null)
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: _selectedPosition!,
+                            width: 60,
+                            height: 60,
+                            child: const Icon(
+                              Icons.location_on,
+                              color: Color(0xFFFF0000),
+                              size: 40,
+                              shadows: [
+                                Shadow(color: Colors.black38, blurRadius: 10),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text("İşleniyor..."),
-                      ],
-                    )
-                        : const Text("Bu Konumu Seç"),
+                        ],
+                      ),
+                  ],
+                ),
+
+                // Center button
+                Positioned(
+                  bottom: 100,
+                  right: 16,
+                  child: FloatingActionButton(
+                    heroTag: "centerMap",
+                    mini: true,
+                    backgroundColor: Colors.white,
+                    onPressed: _isLoading ? null : () async {
+                      try {
+                        // Use LocationService instead of LocationHelper
+                        final position = await LocationService.getCurrentLocation();
+                        final latLng = LatLng(position.latitude, position.longitude);
+                        _mapController.move(latLng, 15);
+                        setState(() {
+                          _selectedPosition = latLng;
+                        });
+                        _getAddressFromCoordinates(latLng);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Konum alınamadı')),
+                        );
+                      }
+                    },
+                    child: Icon(
+                      Icons.my_location,
+                      color: _isLoading ? Colors.grey : const Color(0xFFFF0000),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+
+      // Bottom action area
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_selectedPosition != null)
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, color: Color(0xFFFF0000), size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _isLoading ? "Adres alınıyor..." : (_address ?? "Adres bilgisi alınamadı"),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: _isLoading ? Colors.grey : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Lat: ${_selectedPosition!.latitude.toStringAsFixed(6)}, Lng: ${_selectedPosition!.longitude.toStringAsFixed(6)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            ElevatedButton(
+              onPressed: _selectedPosition == null || _isLoading
+                  ? null
+                  : () {
+                Navigator.pop(context, {
+                  'latlng': _selectedPosition,
+                  'address': _address,
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF0000),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                disabledBackgroundColor: Colors.grey.shade300,
+              ),
+              child: Text(
+                _isLoading ? "Adres Bilgileri Alınıyor..." : "Bu Konumu Kullan",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }

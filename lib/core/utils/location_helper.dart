@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 class LocationHelper {
@@ -60,5 +61,22 @@ class LocationHelper {
     }
 
     return null;
+  }
+  // In lib/core/utils/location_helper.dart, add this method:
+
+  static Future<Position> getCurrentLocation() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever ||
+        permission == LocationPermission.denied) {
+      throw Exception('Konum izni reddedildi');
+    }
+
+    return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
   }
 }

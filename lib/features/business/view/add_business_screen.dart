@@ -1,17 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:letwork/features/business/view/business_detail_screen.dart';
-import 'package:letwork/features/business/widgets/post_businessinfo_section.dart';
-import 'package:letwork/features/business/widgets/post_images_section.dart';
-import 'package:letwork/features/business/widgets/post_map_section.dart';
-import 'package:letwork/features/business/widgets/post_menu_section.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../data/repositories/category_repository.dart';
 import '../cubit/add_business_cubit.dart';
+import '../../main_wrapper/main_wrapper_screen.dart';
+import '../widgets/post_businessinfo_section.dart';
+import '../widgets/post_images_section.dart';
+import '../widgets/post_map_section.dart';
+import '../widgets/post_menu_section.dart';
 
 class AddBusinessScreen extends StatefulWidget {
   const AddBusinessScreen({super.key});
@@ -56,117 +58,94 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchUserId();
-    _fetchCategories();
+    _initData();
+  }
+
+  Future<void> _initData() async {
+    await _fetchUserId();
+    await _fetchCategories();
   }
 
   Future<void> _fetchUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userId = prefs.getInt('userId');
-    });
+    userId = prefs.getInt('userId');
   }
 
   Future<void> _fetchCategories() async {
-    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final repo = CategoryRepository();
       final result = await repo.getCategories();
-      if (!mounted) return;
-      setState(() {
-        categoryGroups = List<Map<String, dynamic>>.from(result);
-        _isLoading = false;
-      });
+      categoryGroups = List<Map<String, dynamic>>.from(result);
     } catch (_) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Kategoriler alınamadı"),
-          backgroundColor: Colors.red.shade700,
-        ),
+        SnackBar(content: const Text("Kategoriler alınamadı"), backgroundColor: Colors.red.shade700),
       );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _updateProgress() {
-    if (!mounted) return;
-    setState(() {
-      _formProgress['businessInfo'] = nameController.text.isNotEmpty &&
-          descController.text.isNotEmpty &&
-          openController.text.isNotEmpty &&
-          closeController.text.isNotEmpty &&
-          selectedCategoryGroup != null &&
-          selectedSubCategory != null;
+    _formProgress['businessInfo'] = nameController.text.isNotEmpty &&
+        descController.text.isNotEmpty &&
+        openController.text.isNotEmpty &&
+        closeController.text.isNotEmpty &&
+        selectedCategoryGroup != null &&
+        selectedSubCategory != null;
 
-      _formProgress['location'] = latitude != null && longitude != null;
-      _formProgress['images'] = profileImage != null && detailImages.length >= 3;
-      _formProgress['services'] = services.isNotEmpty &&
-          !services.any((s) => s['name']!.isEmpty || s['price']!.isEmpty);
-    });
+    _formProgress['location'] = latitude != null && longitude != null;
+    _formProgress['images'] = profileImage != null && detailImages.length >= 3;
+    _formProgress['services'] = services.isNotEmpty &&
+        !services.any((s) => s['name']!.isEmpty || s['price']!.isEmpty);
   }
 
-  void _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _submit() async {
     _updateProgress();
+    if (!_formKey.currentState!.validate()) return;
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Kullanıcı bilgisi alınamadı"), backgroundColor: Colors.red),
-      );
+      _showError("Kullanıcı bilgisi alınamadı");
       return;
     }
 
-    if (!_formProgress.values.every((completed) => completed)) {
-      final firstIncomplete = _formProgress.entries
-          .firstWhere((entry) => !entry.value, orElse: () => const MapEntry('', true));
-
-      String message = switch (firstIncomplete.key) {
+    if (!_formProgress.values.every((v) => v)) {
+      final incomplete = _formProgress.entries.firstWhere((e) => !e.value).key;
+      final message = switch (incomplete) {
         'businessInfo' => "Lütfen işletme bilgilerini eksiksiz doldurun",
         'location' => "Lütfen işletme konumunu belirleyin",
         'images' => "Lütfen profil fotoğrafı ve en az 3 detay fotoğrafı ekleyin",
         'services' => "Lütfen en az bir hizmet ekleyin ve fiyatlandırın",
-        _ => "Lütfen tüm alanları eksiksiz doldurun",
+        _ => "Lütfen tüm alanları eksiksiz doldurun"
       };
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red.shade700),
-      );
+      _showError(message);
       return;
     }
 
-    final formData = FormData();
-
-    formData.fields.addAll([
-      MapEntry('user_id', userId.toString()),
-      MapEntry('name', nameController.text),
-      MapEntry('description', descController.text),
-      MapEntry('open_time', openController.text),
-      MapEntry('close_time', closeController.text),
-      MapEntry('address', address ?? ""),
-      MapEntry('category', selectedCategoryGroup!),
-      MapEntry('sub_category', selectedSubCategory!),
-      MapEntry('is_corporate', isCorporate ? '1' : '0'),
-      MapEntry('latitude', latitude.toString()),
-      MapEntry('longitude', longitude.toString()),
-      MapEntry('menu', jsonEncode(services)),
-    ]);
-
-    formData.files.add(MapEntry(
-      'profile_image',
-      await MultipartFile.fromFile(profileImage!.path),
-    ));
-
-    for (var file in detailImages) {
-      formData.files.add(MapEntry(
-        'detail_images[]',
-        await MultipartFile.fromFile(file.path),
-      ));
-    }
+    final formData = FormData.fromMap({
+      'user_id': userId.toString(),
+      'name': nameController.text,
+      'description': descController.text,
+      'open_time': openController.text,
+      'close_time': closeController.text,
+      'address': address ?? '',
+      'category': selectedCategoryGroup!,
+      'sub_category': selectedSubCategory!,
+      'is_corporate': isCorporate ? '1' : '0',
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'menu': jsonEncode(services),
+      'profile_image': await MultipartFile.fromFile(profileImage!.path),
+      'detail_images[]': await Future.wait(detailImages.map((f) => MultipartFile.fromFile(f.path))),
+    });
 
     context.read<AddBusinessCubit>().addBusiness(formData);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red.shade700),
+    );
   }
 
   @override
@@ -183,21 +162,17 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
       ),
       body: BlocConsumer<AddBusinessCubit, AddBusinessState>(
         listener: (context, state) {
-          if (!mounted) return;
           if (state is AddBusinessSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message), backgroundColor: Colors.green.shade700),
             );
-            Navigator.pushReplacement(
+            Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                builder: (_) => BusinessDetailScreen(businessId: state.businessId),
-              ),
+              MaterialPageRoute(builder: (_) => const MainWrapperScreen()),
+                  (route) => false,
             );
           } else if (state is AddBusinessError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red.shade700),
-            );
+            _showError(state.message);
           }
         },
         builder: (context, state) {
@@ -274,11 +249,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
                         ? const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
-                        ),
+                        SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white)),
                         SizedBox(width: 12),
                         Text("İşletme Kaydediliyor...", style: TextStyle(fontSize: 16)),
                       ],
