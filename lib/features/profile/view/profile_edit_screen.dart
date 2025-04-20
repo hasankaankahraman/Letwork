@@ -72,7 +72,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           title: const Text("Profili Düzenle"),
           centerTitle: true,
           backgroundColor: theme.scaffoldBackgroundColor,
-          elevation: 0,
+          scrolledUnderElevation: 0, // Bu satırı ekleyin
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded),
             onPressed: () => Navigator.pop(context),

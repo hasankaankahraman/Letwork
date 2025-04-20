@@ -111,6 +111,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
         title: const Text("Konum Seç"),
         backgroundColor: Colors.white,
         elevation: 1,
+        scrolledUnderElevation: 0,
       ),
       body: Column(
         children: [

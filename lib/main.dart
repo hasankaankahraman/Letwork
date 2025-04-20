@@ -1,51 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';  // BlocProvider'ı import ediyoruz.
-import 'package:letwork/features/chat/cubit/chat_cubit.dart';  // ChatCubit'i import ediyoruz.
-import 'package:letwork/features/chat/repository/chat_repository.dart';  // ChatRepository'i import ediyoruz.
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:letwork/features/chat/cubit/chat_cubit.dart';
+import 'package:letwork/features/chat/repository/chat_repository.dart';
 import 'package:letwork/router/app_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/date_symbol_data_local.dart'; // ← bunu ekledik
 import 'features/auth/view/login_screen.dart';
 import 'features/main_wrapper/main_wrapper_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // async işlemlerden önce gerekli
+  await initializeDateFormatting('tr_TR', null); // ← locale yüklemesi
   runApp(const LetWorkApp());
 }
 
 class LetWorkApp extends StatelessWidget {
   const LetWorkApp({super.key});
 
-  // Kullanıcının giriş yapıp yapmadığını kontrol eden asenkron fonksiyon
   Future<bool> checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('isLoggedIn') ?? false; // 'isLoggedIn' key'ini kullanarak login durumunu kontrol ediyoruz
+    return prefs.getBool('isLoggedIn') ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // Diğer BlocProvider'lar
-        BlocProvider(create: (context) => ChatCubit(ChatRepository())),  // ChatCubit'i burada sağlıyoruz
+        BlocProvider(create: (context) => ChatCubit(ChatRepository())),
       ],
       child: MaterialApp(
         title: 'LetWork',
         theme: ThemeData(
           primarySwatch: Colors.indigo,
           scaffoldBackgroundColor: Colors.white,
-          useMaterial3: true,  // Material3 kullanımı
+          useMaterial3: true,
         ),
         debugShowCheckedModeBanner: false,
-        initialRoute: '/', // Başlangıçta hangi route'un kullanılacağını belirtiyoruz
-        onGenerateRoute: AppRouter.generateRoute, // Tüm route'ları AppRouter sınıfı ile yönetiyoruz
+        initialRoute: '/',
+        onGenerateRoute: AppRouter.generateRoute,
         home: FutureBuilder<bool>(
-          future: checkLoginStatus(),  // Kullanıcının login durumunu kontrol ediyoruz
+          future: checkLoginStatus(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator()); // Veriler yüklenirken gösterilecek ekran
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasData && snapshot.data == true) {
-              return const MainWrapperScreen(); // Kullanıcı giriş yapmışsa MainWrapperScreen'e yönlendiriyoruz
+              return const MainWrapperScreen();
             } else {
-              return const LoginScreen(); // Kullanıcı giriş yapmamışsa LoginScreen'e yönlendiriyoruz
+              return const LoginScreen();
             }
           },
         ),

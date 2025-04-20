@@ -56,6 +56,7 @@ class ProfileScreen extends StatelessWidget {
             backgroundColor: Colors.grey[50],
             appBar: AppBar(
               elevation: 0,
+              scrolledUnderElevation: 0, // Bu satırı ekleyin
               backgroundColor: Colors.white,
               title: const Text(
                 "Profil",

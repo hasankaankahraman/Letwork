@@ -18,6 +18,9 @@ dependencies:
   equatable: ^2.0.7
   intl: ^0.20.2  # Use the latest version available
   flutter_map_location_marker: ^10.0.2
+  url_launcher: ^6.3.1
+  map_launcher: ^3.5.0
+
 
 
 

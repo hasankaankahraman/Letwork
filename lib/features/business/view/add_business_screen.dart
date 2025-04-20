@@ -157,6 +157,7 @@ class _AddBusinessScreenState extends State<AddBusinessScreen> {
       appBar: AppBar(
         title: const Text("İşletme Ekle", style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
+        scrolledUnderElevation: 0,
         backgroundColor: Colors.white,
         centerTitle: true,
       ),

@@ -490,19 +490,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> with AutomaticKeepAli
         title: const Text(
           "Favori İşletmeler",
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
-        backgroundColor: themeColor,
+        backgroundColor: Colors.white,
+        scrolledUnderElevation: 0, // Bu satırı ekleyin
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.red),
             onPressed: _loadFavorites,
             tooltip: 'Yenile',
           ),

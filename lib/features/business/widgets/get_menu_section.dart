@@ -11,41 +11,36 @@ class MenuSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /// 🔴 Başlık
-        Row(
-          children: const [
-            Icon(Icons.restaurant_menu, color: Color(0xFFFF0000)),
-            SizedBox(width: 8),
-            Text(
-              "Menü",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.black87,
-              ),
-            ),
-          ],
+        // Başlık
+        const Text(
+          "Hizmetler",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            color: Color(0xFFFF0000),
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
 
-        /// 🔴 Menü Listesi
+        // Hizmet Listesi
         ListView.separated(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           itemCount: business.menu.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 10),
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final item = business.menu[index];
             return Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Color(0xFFFF0000), width: 0.5),
+              ),
+              elevation: 1.5,
               shadowColor: Colors.black12,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 child: Row(
                   children: [
-                    const Icon(Icons.fastfood, color: Color(0xFFFF0000)),
-                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         item['name'],
@@ -56,12 +51,19 @@ class MenuSection extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Text(
-                      "${item['price']}₺",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Color(0xFFFF0000),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF0000).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        "${item['price']}₺",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xFFFF0000),
+                        ),
                       ),
                     ),
                   ],

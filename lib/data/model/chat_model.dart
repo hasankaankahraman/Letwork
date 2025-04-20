@@ -13,6 +13,7 @@ class ChatModel {
   final int unreadCount;
   final String? lastMessage;
   final DateTime? lastTime;
+  final String? lastSenderName; // <-- yeni alan
 
   ChatModel({
     this.id = '',
@@ -27,10 +28,10 @@ class ChatModel {
     this.unreadCount = 0,
     this.lastMessage,
     this.lastTime,
+    this.lastSenderName, // <-- constructor'a eklendi
   });
 
   factory ChatModel.fromJson(Map<String, dynamic> json) {
-    // Handle different API responses (get_messages.php vs get_user_chats.php)
     final bool isUserChat = json.containsKey('business_name');
 
     return ChatModel(
@@ -46,6 +47,7 @@ class ChatModel {
       unreadCount: json['unread_count'] ?? 0,
       lastMessage: json['last_message'],
       lastTime: json['last_time'] != null ? DateTime.tryParse(json['last_time']) : null,
+      lastSenderName: json['last_sender_name'], // <-- burası eklendi
     );
   }
 
@@ -54,7 +56,6 @@ class ChatModel {
       return "https://letwork.hasankaan.com/assets/default_profile.png";
     }
 
-    // Check if the URL already contains the domain
     if (profileImage!.startsWith('http')) {
       return profileImage!;
     }
@@ -77,13 +78,9 @@ class ChatModel {
     }
   }
 
-  // Helper method to get the display message (either message or lastMessage)
   String get displayMessage => message.isNotEmpty ? message : lastMessage ?? '';
-
-  // Helper method to get display time (either createdAt or lastTime)
   DateTime get displayTime => lastTime ?? createdAt;
 
-  // Added missing getter that's causing the error
   String get lastMessageTime {
     final timeToFormat = lastTime ?? createdAt;
     final now = DateTime.now();

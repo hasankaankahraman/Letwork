@@ -186,6 +186,7 @@ class _UpdateBusinessScreenState extends State<UpdateBusinessScreen> {
             title: const Text("İşletme Güncelle"),
             centerTitle: true,
             backgroundColor: Colors.white,
+            scrolledUnderElevation: 0,
             foregroundColor: Colors.black,
             elevation: 0,
           ),

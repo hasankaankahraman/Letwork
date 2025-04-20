@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:letwork/features/chat/cubit/chat_cubit.dart';
 import 'package:letwork/features/chat/view/chat_detail_screen.dart';
-import 'package:intl/intl.dart';
 import 'package:letwork/features/main_wrapper/main_wrapper_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
@@ -25,37 +25,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
     context.read<ChatCubit>().loadChatList();
   }
 
-  String _formatLastMessageTime(dynamic timestamp) {
+  String _formatTime(dynamic timestamp) {
     if (timestamp == null) return '';
-
     DateTime dateTime;
 
-    if (timestamp is DateTime) {
-      dateTime = timestamp;
-    } else if (timestamp is String) {
-      try {
+    try {
+      if (timestamp is DateTime) {
+        dateTime = timestamp;
+      } else if (timestamp is String) {
         dateTime = DateTime.parse(timestamp);
-      } catch (_) {
+      } else if (timestamp is int) {
+        dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      } else {
         return '';
       }
-    } else if (timestamp is int) {
-      dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    } else {
+    } catch (_) {
       return '';
     }
 
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    final diff = now.difference(dateTime);
 
-    if (difference.inDays == 0) {
-      return DateFormat('HH:mm').format(dateTime);
-    } else if (difference.inDays == 1) {
-      return 'Dün';
-    } else if (difference.inDays < 7) {
-      return DateFormat('EEEE', 'tr_TR').format(dateTime);
-    } else {
-      return DateFormat('dd.MM.yyyy').format(dateTime);
-    }
+    if (diff.inDays == 0) return DateFormat('HH:mm').format(dateTime);
+    if (diff.inDays == 1) return 'Dün';
+    if (diff.inDays < 7) return DateFormat('EEEE', 'tr_TR').format(dateTime);
+
+    return DateFormat('dd.MM.yyyy').format(dateTime);
   }
 
   @override
@@ -64,32 +59,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         elevation: 0,
-        scrolledUnderElevation: 2,
         backgroundColor: Colors.white,
-        title: Text(
-          'Mesajlar',
-          style: TextStyle(
-            color: themeColor,
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
-        ),
+        title: Text('Mesajlar', style: TextStyle(color: themeColor, fontWeight: FontWeight.w600, fontSize: 20)),
         actions: [
           IconButton(
             icon: Icon(Icons.search, color: themeColor),
-            onPressed: () {
-              // Arama fonksiyonu
-            },
+            onPressed: () {},
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert, color: themeColor),
-            onSelected: (value) {
-              if (value == 'mark_all_read') {
-                // Tümünü okundu olarak işaretle
-              } else if (value == 'settings') {
-                // Mesaj ayarları
-              }
-            },
+            onSelected: (value) {},
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'mark_all_read',
@@ -117,15 +96,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
       ),
       body: RefreshIndicator(
         color: themeColor,
-        onRefresh: () async {
-          _loadChats();
-        },
+        onRefresh: () async => _loadChats(),
         child: BlocBuilder<ChatCubit, ChatState>(
           builder: (context, state) {
             if (state is ChatLoading) {
-              return Center(
-                child: CircularProgressIndicator(color: themeColor),
-              );
+              return Center(child: CircularProgressIndicator(color: themeColor));
             } else if (state is ChatError) {
               return _buildErrorView(state.message);
             } else if (state is ChatLoaded && state.messages.isNotEmpty) {
@@ -143,10 +118,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 12),
       itemCount: chats.length,
-      separatorBuilder: (context, index) => const Divider(height: 1, indent: 76),
+      separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
       itemBuilder: (context, index) {
         final chat = chats[index];
-        final bool hasUnreadMessages = chat.unreadCount != null && chat.unreadCount > 0;
+        final bool hasUnread = chat.unreadCount != null && chat.unreadCount > 0;
 
         return InkWell(
           onTap: () {
@@ -163,16 +138,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
                   radius: 24,
@@ -184,63 +152,65 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // İşletme Adı ve Zaman
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Flexible(
                             child: Text(
-                              chat.senderName ?? 'İşletme',
+                              chat.businessName,
                               style: TextStyle(
-                                fontWeight: hasUnreadMessages
-                                    ? FontWeight.bold
-                                    : FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                                 fontSize: 16,
                                 color: Colors.black87,
                               ),
-                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Text(
-                            _formatLastMessageTime(chat.lastMessageTime),
+                            _formatTime(chat.lastTime ?? chat.createdAt),
                             style: TextStyle(
                               fontSize: 12,
-                              color: hasUnreadMessages
-                                  ? themeColor
-                                  : Colors.grey[500],
-                              fontWeight: hasUnreadMessages
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
+                              color: hasUnread ? themeColor : Colors.grey[500],
+                              fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
                             ),
                           ),
                         ],
                       ),
+
+                      // Kullanıcı adı (mesajı atan)
+                      if (chat.lastSenderName != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          chat.lastSenderName!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+
                       const SizedBox(height: 4),
+
+                      // Son mesaj + okunmamış badge
                       Row(
                         children: [
                           Expanded(
                             child: Text(
-                              chat.message ?? '',
+                              chat.displayMessage,
                               style: TextStyle(
-                                color: hasUnreadMessages
-                                    ? Colors.black87
-                                    : Colors.grey[600],
-                                fontWeight: hasUnreadMessages
-                                    ? FontWeight.w500
-                                    : FontWeight.normal,
+                                color: hasUnread ? Colors.black87 : Colors.grey[600],
+                                fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
                                 fontSize: 14,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (hasUnreadMessages) ...[
+                          if (hasUnread) ...[
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: themeColor,
                                 borderRadius: BorderRadius.circular(10),
@@ -273,19 +243,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 80,
-            color: themeColor.withOpacity(0.5),
-          ),
+          Icon(Icons.chat_bubble_outline, size: 80, color: themeColor.withOpacity(0.5)),
           const SizedBox(height: 20),
           Text(
             'Henüz bir mesajınız yok',
-            style: TextStyle(
-              color: Colors.grey[800],
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(color: Colors.grey[800], fontSize: 20, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Padding(
@@ -293,41 +255,26 @@ class _ChatListScreenState extends State<ChatListScreen> {
             child: Text(
               'İşletmelerle iletişime geçerek mesajlaşmaya başlayabilirsiniz.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 15,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 15),
             ),
           ),
           const SizedBox(height: 32),
           ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const MainWrapperScreen()),
+                    (route) => false,
+              );
+            },
             style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white,
               backgroundColor: themeColor,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 14,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
             icon: const Icon(Icons.explore, color: Colors.white),
             label: const Text('İşletmelere Göz At'),
-            onPressed: () {
-              // MainWrapperScreen'e git ve home tab'ını seç
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (context) => const MainWrapperScreen(),
-                ),
-                    (route) => false, // Tüm route stack'i temizle
-              );
-
-              // Eğer MainWrapperScreen'de bir tab controller varsa,
-              // o tabı seçmek için gerekli parametreyi iletebilirsiniz
-              // Örnek: MainWrapperScreen(initialTabIndex: 0)
-            },
           ),
         ],
       ),
@@ -341,43 +288,28 @@ class _ChatListScreenState extends State<ChatListScreen> {
         children: [
           Icon(Icons.error_outline, size: 70, color: themeColor.withOpacity(0.7)),
           const SizedBox(height: 20),
-          Text(
-            'Bir hata oluştu',
-            style: TextStyle(
-              color: Colors.grey[800],
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text('Bir hata oluştu', style: TextStyle(color: Colors.grey[800], fontSize: 20, fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 15,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 15),
             ),
           ),
           const SizedBox(height: 32),
           ElevatedButton.icon(
+            onPressed: _loadChats,
             style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white,
               backgroundColor: themeColor,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 14,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
             icon: const Icon(Icons.refresh),
             label: const Text('Tekrar Dene'),
-            onPressed: _loadChats,
           ),
         ],
       ),

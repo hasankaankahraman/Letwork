@@ -218,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   AppBar _buildAppBar() {
     return AppBar(
+      scrolledUnderElevation: 0, // Bu satırı ekleyin
       elevation: 0,
       backgroundColor: Colors.white,
       leadingWidth: 120,

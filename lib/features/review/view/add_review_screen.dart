@@ -38,10 +38,12 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Değerlendirme Ekle"),
+        title: const Text("Değerlendirme Ekle",
+          style: TextStyle(color: Color(0xFFFF0000)),
+        ),
         elevation: 0,
         centerTitle: true,
-        backgroundColor: const Color(0xFFFF0000), // Kırmızı tema
+        backgroundColor: const Color(0xFFFFFFFF),
       ),
       body: BlocConsumer<ReviewCubit, ReviewState>(
         listener: (context, state) {
@@ -98,20 +100,34 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(5, (index) {
                           final star = index + 1;
+                          final isSelected = _rating >= star;
+
                           return GestureDetector(
                             onTap: () => setState(() => _rating = star),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
+                              decoration: isSelected
+                                  ? const BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x99FFF700),
+                                    blurRadius: 20,
+                                    offset: Offset(0, 0),
+                                  ),
+                                ],
+                              )
+                                  : null,
                               child: Icon(
                                 Icons.star_rounded,
                                 size: 36,
-                                color: _rating >= star ? Colors.amber : Colors.grey.shade300,
+                                color: isSelected ? const Color(0xFFFFE700) : Colors.grey.shade300,
                               ),
                             ),
                           );
                         }),
                       ),
                     ),
+
                     const SizedBox(height: 24),
                     Text(
                       "Yorumunuz",

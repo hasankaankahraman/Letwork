@@ -2,80 +2,103 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:letwork/data/model/business_detail_model.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:map_launcher/map_launcher.dart';
 
 class MapSection extends StatelessWidget {
   final BusinessDetailModel business;
 
   const MapSection({super.key, required this.business});
 
+  Future<void> _openMap() async {
+    try {
+      final availableMaps = await MapLauncher.installedMaps;
+
+      if (availableMaps.isNotEmpty) {
+        await availableMaps.first.showMarker(
+          coords: Coords(business.latitude, business.longitude),
+          title: business.name,
+        );
+      } else {
+        // Yüklü harita uygulaması yoksa, varsayılan URL ile aç
+        final Uri url = Uri.parse(
+          'https://www.google.com/maps/search/?api=1&query=${business.latitude},${business.longitude}',
+        );
+        if (!await launchUrl(url)) {
+          throw Exception('Harita açılamadı');
+        }
+      }
+    } catch (e) {
+      debugPrint('Harita açılırken hata: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final Color themeColor = const Color(0xFFFF0000);
+
     return Card(
-      elevation: 4,
-      shadowColor: Colors.black26,
+      color: Colors.white,
+      elevation: 1.5,
+      shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: themeColor.withOpacity(0.3), width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(18.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🔴 Başlık ve Buton
+            // Başlık ve Buton
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  children: const [
+                  children: [
                     Icon(
                       Icons.location_on,
-                      color: Color(0xFFFF0000),
+                      color: themeColor,
                       size: 22,
                     ),
-                    SizedBox(width: 8),
-                    Text(
+                    const SizedBox(width: 8),
+                    const Text(
                       "Konum",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontSize: 18,
                         color: Colors.black87,
                       ),
                     ),
                   ],
                 ),
                 ElevatedButton.icon(
-                  icon: const Icon(Icons.directions),
-                  label: const Text("Yol Tarifi"),
+                  icon: const Icon(Icons.directions, size: 18),
+                  label: const Text("Yol Tarifi", style: TextStyle(fontSize: 14)),
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
-                    backgroundColor: const Color(0xFFFF0000),
-                    elevation: 2,
+                    backgroundColor: themeColor,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: () {
-                    debugPrint('Yol tarifi açılacak: ${business.latitude},${business.longitude}');
-                  },
+                  onPressed: _openMap,
                 ),
               ],
             ),
 
             const SizedBox(height: 16),
 
-            /// 🔴 Harita
+            // Harita
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               child: Container(
-                height: 220,
+                height: 200,
                 decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
+                  border: Border.all(color: themeColor.withOpacity(0.2)),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Stack(
                   children: [
@@ -97,8 +120,8 @@ class MapSection extends StatelessWidget {
                           markers: [
                             Marker(
                               point: LatLng(business.latitude, business.longitude),
-                              width: 50,
-                              height: 50,
+                              width: 40,
+                              height: 40,
                               child: TweenAnimationBuilder<double>(
                                 tween: Tween<double>(begin: 0, end: 1),
                                 duration: const Duration(milliseconds: 500),
@@ -109,14 +132,14 @@ class MapSection extends StatelessWidget {
                                     child: child,
                                   );
                                 },
-                                child: const Icon(
+                                child: Icon(
                                   Icons.location_on,
-                                  color: Color(0xFFFF0000),
-                                  size: 50,
-                                  shadows: [
+                                  color: themeColor,
+                                  size: 40,
+                                  shadows: const [
                                     Shadow(
                                       color: Colors.black38,
-                                      blurRadius: 10,
+                                      blurRadius: 8,
                                     ),
                                   ],
                                 ),
@@ -126,48 +149,31 @@ class MapSection extends StatelessWidget {
                         ),
                       ],
                     ),
-                    Positioned(
-                      bottom: 12,
-                      right: 12,
-                      child: FloatingActionButton.small(
-                        heroTag: "mapZoom",
-                        onPressed: () {
-                          // Geniş harita görüntüsü eklenecekse burada kullanılabilir
-                        },
-                        backgroundColor: Colors.white,
-                        child: const Icon(
-                          Icons.fullscreen,
-                          color: Color(0xFFFF0000),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 8),
-
-            /// 🔴 Adres
+            // Adres - eğer business.address boş değilse göster
             if (business.address.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(top: 8.0),
+                padding: const EdgeInsets.only(top: 12.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Icon(
                       Icons.home,
                       size: 18,
-                      color: Color(0xFFFF0000),
+                      color: themeColor,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        // burada değişken string kullan
-                        "Adres bilgisi bulunuyor.",
-                        style: TextStyle(
+                        business.address,
+                        style: const TextStyle(
                           color: Colors.black87,
                           fontSize: 14,
+                          height: 1.4,
                         ),
                       ),
                     ),

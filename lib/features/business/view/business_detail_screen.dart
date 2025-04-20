@@ -129,29 +129,36 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                         ReviewSection(businessId: widget.businessId),
                         const SizedBox(height: 24),
                         // İşletme ile iletişime geç butonu
-                        ElevatedButton(
-                          onPressed: () {
-                            // Chat detay ekranına yönlendir
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ChatDetailScreen(businessId: widget.businessId),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 0, bottom: 32), // Alt boşluk
+                          child: Center(
+                            child: SizedBox(
+                              width: double.infinity, // Ekranı kaplasın
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ChatDetailScreen(businessId: widget.businessId),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFF0000), // Kırmızı tema
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "İşletme ile İletişime Geç",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
                               ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF0000), // Kırmızı arka plan
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            "İşletme ile İletişime Geç",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
                             ),
                           ),
                         ),
@@ -171,37 +178,124 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
-      backgroundColor: const Color(0xFFFF0000),
+      backgroundColor: Colors.white, // Beyaz arka plan
+      foregroundColor: Colors.black, // Siyah metin rengi
+      scrolledUnderElevation: 0,
+      // Geri tuşu
+      leading: IconButton(
+        icon: const Icon(
+          Icons.arrow_back,
+          color: Colors.white, // Beyaz icon rengi
+          shadows: [
+            Shadow(
+              blurRadius: 10.0,
+              color: Colors.black54,
+              offset: Offset(0, 0),
+            ),
+          ],
+        ),
+        onPressed: () => Navigator.pop(context),
+      ),
+      // Favori ikonu
       actions: [
         IconButton(
           icon: Icon(
             isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: Colors.white,
+            color: isFavorite ? Colors.red : Colors.white, // Beyaz icon rengi (favori değilse)
+            shadows: const [
+              Shadow(
+                blurRadius: 10.0,
+                color: Colors.black54,
+                offset: Offset(0, 0),
+              ),
+            ],
           ),
           onPressed: _toggleFavorite,
         ),
       ],
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          business.name,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            shadows: [
-              Shadow(offset: Offset(1, 1), blurRadius: 2, color: Colors.black45),
-            ],
-          ),
+      // Başlangıçta beyaz bir çizgi ekleyerek appbar ve içerik arasında sınır oluşturuyoruz
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(
+          height: 1,
+          color: Colors.grey.withOpacity(0.2),
         ),
-        background: business.images.isNotEmpty
-            ? Image.network(
-          "https://letwork.hasankaan.com/${business.images[0]['image_url']}",
-          fit: BoxFit.cover,
-        )
-            : const Center(child: Icon(Icons.business, size: 80, color: Colors.white)),
+      ),
+      // Esnek bölüm
+      flexibleSpace: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          // Bu daha güvenilir bir yöntem - yükseklik doğrudan ölçülüyor
+          final double currentExtent = constraints.biggest.height;
+          // Minimum yükseklik (daralmış durumda)
+          final double minExtent = kToolbarHeight + MediaQuery.of(context).padding.top;
+          // Maksimum yükseklik (genişletilmiş durumda)
+          final double maxExtent = 200;
+
+          // 0.0 (tamamen daralmış) ile 1.0 (tamamen genişletilmiş) arasında değer
+          final double expansionRatio = (currentExtent - minExtent) / (maxExtent - minExtent);
+          // Limit değerleri 0.0 ile 1.0 arasında
+          final double clampedExpansionRatio = expansionRatio.clamp(0.0, 1.0);
+
+          // 0.3'ten küçükse siyah metin göster (neredeyse tamamen daralmış)
+          final bool useBlackText = clampedExpansionRatio < 0.3;
+
+          return FlexibleSpaceBar(
+            centerTitle: true,
+            titlePadding: const EdgeInsets.only(bottom: 16),
+            title: Text(
+              business.name,
+              style: TextStyle(
+                color: useBlackText ? Colors.black : Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                shadows: useBlackText
+                    ? [] // Daraldığında gölge yok
+                    : [  // Genişletildiğinde metin gölgesi ekle
+                  const Shadow(
+                    blurRadius: 10.0,
+                    color: Colors.black54,
+                    offset: Offset(0, 0),
+                  ),
+                ],
+              ),
+            ),
+            background: Stack(
+              children: [
+                // Arka plan resmi
+                business.images.isNotEmpty
+                    ? Image.network(
+                  "https://letwork.hasankaan.com/${business.images[0]['image_url']}",
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                )
+                    : const Center(child: Icon(Icons.business, size: 80, color: Colors.grey)),
+
+                // Metin için gradient overlay
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.7),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
-
   Widget _buildServicesSection(BusinessDetailModel business) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
