@@ -11,7 +11,7 @@ import 'package:letwork/features/chat/view/chat_detail_screen.dart';
 import 'package:letwork/features/review/cubit/review_cubit.dart';
 import 'package:letwork/features/review/repository/review_repository.dart';
 import 'package:letwork/features/review/widgets/review_section.dart';
-import 'package:shared_preferences/shared_preferences.dart';  // ChatDetailScreen'i import ediyoruz.
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final String businessId;
@@ -115,17 +115,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                         const SizedBox(height: 24),
                         MapSection(business: business),
                         const SizedBox(height: 24),
-                        if (business.menu.isNotEmpty) ...[
-                          MenuSection(business: business),
-                          const SizedBox(height: 24),
-                        ],
-                        if (business.services.isNotEmpty)
-                          _buildServicesSection(business),
-                        if (business.images.isNotEmpty) ...[
-                          const SizedBox(height: 24),
-                          PhotosSection(business: business),
-                        ],
+                        // Her zaman MenuSection kullan - hem menu hem de services verisini alabilir
+                        MenuSection(business: business),
                         const SizedBox(height: 24),
+                        if (business.images.isNotEmpty) ...[
+                          PhotosSection(business: business),
+                          const SizedBox(height: 24),
+                        ],
                         ReviewSection(businessId: widget.businessId),
                         const SizedBox(height: 24),
                         // İşletme ile iletişime geç butonu
@@ -296,35 +292,5 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
       ),
     );
   }
-  Widget _buildServicesSection(BusinessDetailModel business) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Verilen Hizmetler",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFFF0000)),
-        ),
-        const SizedBox(height: 12),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: business.services.length,
-          itemBuilder: (context, index) {
-            final service = business.services[index];
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(service['service_name'], style: const TextStyle(color: Colors.black87)),
-              trailing: Text(
-                "${service['price']}₺",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFFF0000),
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
+// _buildServicesSection metodu kaldırıldı çünkü bu işlevi artık MenuSection yapacak
 }
