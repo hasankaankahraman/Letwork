@@ -25,6 +25,7 @@ dependencies:
 
 
 
+
   # NETWORK VE CACHE
   dio: ^5.1.0                     # API istekleri için (modern & güçlü)
   cached_network_image: ^3.2.3    # Resimleri cache’leyerek yükler
@@ -59,6 +60,8 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.3
+  bad_words: ^0.3.0
+
 
 
 flutter:

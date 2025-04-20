@@ -16,37 +16,58 @@ class ReviewCubit extends Cubit<ReviewState> {
     required String comment,
   }) async {
     try {
+      if (isClosed) return;
       emit(ReviewLoading());
+
       await repository.addOrUpdateReview(
         userId: userId,
         businessId: businessId,
         rating: rating,
         comment: comment,
       );
-      emit(ReviewSuccess("Yorum başarıyla eklendi/güncellendi."));
+
+      if (!isClosed) {
+        emit(ReviewSuccess("Yorum başarıyla eklendi/güncellendi."));
+      }
     } catch (e) {
-      emit(ReviewError("Yorum eklenemedi: ${e.toString()}"));
+      if (!isClosed) {
+        emit(ReviewError("Yorum eklenemedi: ${e.toString()}"));
+      }
     }
   }
 
   Future<void> deleteReview(String userId, String businessId) async {
     try {
+      if (isClosed) return;
       emit(ReviewLoading());
+
       await repository.deleteReview(userId, businessId);
-      emit(ReviewSuccess("Yorum silindi."));
+
+      if (!isClosed) {
+        emit(ReviewSuccess("Yorum silindi."));
+      }
     } catch (e) {
-      emit(ReviewError("Yorum silinemedi: ${e.toString()}"));
+      if (!isClosed) {
+        emit(ReviewError("Yorum silinemedi: ${e.toString()}"));
+      }
     }
   }
 
   Future<void> fetchReviews(String businessId) async {
     try {
+      if (isClosed) return;
       emit(ReviewLoading());
+
       final reviews = await repository.fetchReviews(businessId);
       final averageRating = _calculateAverageRating(reviews);
-      emit(ReviewLoaded(reviews, averageRating));
+
+      if (!isClosed) {
+        emit(ReviewLoaded(reviews, averageRating));
+      }
     } catch (e) {
-      emit(ReviewError("Yorumlar alınamadı: ${e.toString()}"));
+      if (!isClosed) {
+        emit(ReviewError("Yorumlar alınamadı: ${e.toString()}"));
+      }
     }
   }
 
@@ -55,5 +76,4 @@ class ReviewCubit extends Cubit<ReviewState> {
     final total = reviews.fold<int>(0, (sum, r) => sum + r.rating);
     return total / reviews.length;
   }
-
 }

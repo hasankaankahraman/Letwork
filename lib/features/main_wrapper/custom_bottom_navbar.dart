@@ -75,7 +75,7 @@ class CustomBottomNavBar extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: const Color(0xFFFF0000).withOpacity(0.3),
-              blurRadius: 10,
+              blurRadius: 15,
               spreadRadius: 1,
             ),
           ],

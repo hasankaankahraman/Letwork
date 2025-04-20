@@ -11,7 +11,7 @@ class ReviewSection extends StatelessWidget {
   final String businessId;
 
   static const Color pureRed = Color(0xFFFF0000);
-  static const Color brightYellow = Color(0xFFFFD700); // Parlak sarı
+  static const Color brightYellow = Color(0xFFFFD700);
 
   const ReviewSection({super.key, required this.businessId});
 
@@ -48,7 +48,7 @@ class ReviewSection extends StatelessWidget {
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       child: hasUserReview
-                          ? _buildUserReview(context, userReview, currentUserId)
+                          ? _buildUserReview(context, userReview!, currentUserId)
                           : _buildAddReviewButton(context, currentUserId),
                     ),
                     const SizedBox(height: 8),
@@ -215,6 +215,18 @@ class ReviewSection extends StatelessWidget {
                 minimumSize: const Size(double.infinity, 48),
               ),
             ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () => _confirmDelete(context, userId.toString()),
+              icon: const Icon(Icons.delete_outline, color: pureRed),
+              label: const Text("Yorumu Sil", style: TextStyle(color: pureRed)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: pureRed),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                minimumSize: const Size(double.infinity, 48),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
           ],
         ),
       ),
@@ -254,11 +266,12 @@ class ReviewSection extends StatelessWidget {
   }
 
   void _navigateToAddReview(BuildContext context, int userId) async {
+    final cubit = context.read<ReviewCubit>();
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
-          value: context.read<ReviewCubit>(),
+          value: cubit,
           child: AddReviewScreen(
             businessId: businessId,
             userId: userId.toString(),
@@ -268,7 +281,7 @@ class ReviewSection extends StatelessWidget {
     );
 
     if (result == true) {
-      context.read<ReviewCubit>().fetchReviews(businessId);
+      cubit.fetchReviews(businessId);
     }
   }
 
@@ -280,6 +293,31 @@ class ReviewSection extends StatelessWidget {
           create: (_) => ReviewCubit(ReviewRepository())..fetchReviews(businessId),
           child: ReviewListScreen(businessId: businessId),
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, String userId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Yorumu Sil"),
+        content: const Text("Yorumu silmek istediğinize emin misiniz?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("İptal"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final cubit = context.read<ReviewCubit>();
+              await cubit.deleteReview(userId, businessId);
+              await cubit.fetchReviews(businessId);
+            },
+            child: const Text("Sil", style: TextStyle(color: pureRed)),
+          ),
+        ],
       ),
     );
   }

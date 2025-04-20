@@ -9,41 +9,42 @@ class ChatCubit extends Cubit<ChatState> {
 
   ChatCubit(this._chatRepository) : super(ChatInitial());
 
-  // 🔧 Sohbet listesini kullanıcı ID'siyle yükle
   Future<void> loadChatList() async {
     try {
+      if (isClosed) return;
       emit(ChatLoading());
 
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getInt('userId');
 
       if (userId == null) {
-        emit(ChatError(message: "Kullanıcı ID'si bulunamadı"));
+        if (!isClosed) emit(ChatError(message: "Kullanıcı ID'si bulunamadı"));
         return;
       }
 
-      // 💬 Debug: doğru userId geldi mi görelim
       print("📥 ChatCubit -> userId: $userId");
 
       final chats = await _chatRepository.getChatList(userId: userId);
-      emit(ChatLoaded(messages: chats));
+
+      if (!isClosed) emit(ChatLoaded(messages: chats));
     } catch (e) {
-      emit(ChatError(message: e.toString()));
+      if (!isClosed) emit(ChatError(message: e.toString()));
     }
   }
 
-  // Belirli bir işletme için mesajları yükle
   Future<void> loadMessages(String businessId) async {
     try {
+      if (isClosed) return;
       emit(ChatLoading());
+
       final messages = await _chatRepository.getMessages(businessId);
-      emit(ChatLoaded(messages: messages));
+
+      if (!isClosed) emit(ChatLoaded(messages: messages));
     } catch (e) {
-      emit(ChatError(message: e.toString()));
+      if (!isClosed) emit(ChatError(message: e.toString()));
     }
   }
 
-  // Mesaj gönder
   Future<void> sendMessage({
     required String senderId,
     required String businessId,
@@ -56,10 +57,13 @@ class ChatCubit extends Cubit<ChatState> {
         message: message,
       );
 
+      if (isClosed) return;
+
       final messages = await _chatRepository.getMessages(businessId);
-      emit(ChatLoaded(messages: messages));
+
+      if (!isClosed) emit(ChatLoaded(messages: messages));
     } catch (e) {
-      emit(ChatError(message: e.toString()));
+      if (!isClosed) emit(ChatError(message: e.toString()));
     }
   }
 
@@ -74,18 +78,18 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> markAllMessagesAsRead() async {
     try {
       await _chatRepository.markAllMessagesAsRead();
-      loadChatList();
+      if (!isClosed) await loadChatList();
     } catch (e) {
-      emit(ChatError(message: e.toString()));
+      if (!isClosed) emit(ChatError(message: e.toString()));
     }
   }
 
   Future<void> deleteChat(String businessId) async {
     try {
       await _chatRepository.deleteChat(businessId);
-      loadChatList();
+      if (!isClosed) await loadChatList();
     } catch (e) {
-      emit(ChatError(message: e.toString()));
+      if (!isClosed) emit(ChatError(message: e.toString()));
     }
   }
 }

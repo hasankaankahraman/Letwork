@@ -14,6 +14,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       : super(ProfileInitial());
 
   Future<void> fetchMyBusinesses() async {
+    if (isClosed) return;
     emit(ProfileLoading());
 
     try {
@@ -21,16 +22,16 @@ class ProfileCubit extends Cubit<ProfileState> {
       final userId = prefs.getInt("userId")?.toString();
 
       if (userId == null) {
-        throw Exception("Kullanıcı ID bulunamadı");
+        if (!isClosed) emit(ProfileError("Kullanıcı ID bulunamadı"));
+        return;
       }
 
       final allBusinesses = await _businessService.fetchAllBusinesses();
-      final myBusinesses =
-      allBusinesses.where((b) => b.userId == userId).toList();
+      final myBusinesses = allBusinesses.where((b) => b.userId == userId).toList();
 
-      emit(ProfileLoaded(myBusinesses));
+      if (!isClosed) emit(ProfileLoaded(myBusinesses));
     } catch (e) {
-      emit(ProfileError("Hata: ${e.toString()}"));
+      if (!isClosed) emit(ProfileError("Hata: ${e.toString()}"));
     }
   }
 
@@ -40,13 +41,17 @@ class ProfileCubit extends Cubit<ProfileState> {
     required String email,
     String? password,
   }) async {
+    if (isClosed) return;
     emit(ProfileUpdating());
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getInt("userId");
 
-      if (userId == null) throw Exception("Kullanıcı ID bulunamadı");
+      if (userId == null) {
+        if (!isClosed) emit(ProfileError("Kullanıcı ID bulunamadı"));
+        return;
+      }
 
       final response = await _profileRepository.updateProfile(
         id: userId,
@@ -56,17 +61,19 @@ class ProfileCubit extends Cubit<ProfileState> {
         password: password,
       );
 
+      if (isClosed) return;
+
       if (response['status'] == 'success') {
         await prefs.setString('fullname', fullname);
         await prefs.setString('username', username);
         await prefs.setString('email', email);
 
-        emit(ProfileUpdated(message: response['message']));
+        if (!isClosed) emit(ProfileUpdated(message: response['message']));
       } else {
-        emit(ProfileError(response['message']));
+        if (!isClosed) emit(ProfileError(response['message']));
       }
     } catch (e) {
-      emit(ProfileError("Hata: ${e.toString()}"));
+      if (!isClosed) emit(ProfileError("Hata: ${e.toString()}"));
     }
   }
 }

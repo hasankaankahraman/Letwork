@@ -9,13 +9,19 @@ class FavoritesCubit extends Cubit<FavoritesState> {
   FavoritesCubit(this._repository) : super(FavoritesInitial());
 
   Future<void> loadFavorites(String userId) async {
+    if (isClosed) return;
     emit(FavoritesLoading());
 
     try {
       final data = await _repository.getUserFavorites(userId);
-      emit(FavoritesLoaded(favorites: data));
+
+      if (!isClosed) {
+        emit(FavoritesLoaded(favorites: data));
+      }
     } catch (e) {
-      emit(FavoritesError(message: e.toString()));
+      if (!isClosed) {
+        emit(FavoritesError(message: e.toString()));
+      }
     }
   }
 
@@ -23,19 +29,25 @@ class FavoritesCubit extends Cubit<FavoritesState> {
     try {
       await _repository.addToFavorites(userId, business.id);
 
+      if (isClosed) return;
+
       final currentState = state;
       if (currentState is FavoritesLoaded) {
         final updatedList = [...currentState.favorites, business];
         emit(FavoritesLoaded(favorites: updatedList));
       }
     } catch (e) {
-      emit(FavoritesError(message: "Favoriye ekleme başarısız: $e"));
+      if (!isClosed) {
+        emit(FavoritesError(message: "Favoriye ekleme başarısız: $e"));
+      }
     }
   }
 
   Future<void> removeFavorite(String userId, String businessId) async {
     try {
       await _repository.removeFromFavorites(userId, businessId);
+
+      if (isClosed) return;
 
       final currentState = state;
       if (currentState is FavoritesLoaded) {
@@ -46,7 +58,9 @@ class FavoritesCubit extends Cubit<FavoritesState> {
         emit(FavoritesLoaded(favorites: updatedList));
       }
     } catch (e) {
-      emit(FavoritesError(message: "Favoriden çıkarma başarısız: $e"));
+      if (!isClosed) {
+        emit(FavoritesError(message: "Favoriden çıkarma başarısız: $e"));
+      }
     }
   }
 }

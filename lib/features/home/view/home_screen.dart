@@ -59,9 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final id = prefs.getInt("userId")?.toString();
     if (id == null) return;
 
+    if (!mounted) return;
     setState(() => userId = id);
 
     final cats = await CategoryService().fetchFlatCategories();
+    if (!mounted) return;
     setState(() => categoryList = cats);
 
     context.read<HomeCubit>().loadBusinesses(
@@ -70,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       category: selectedCategory,
     );
   }
+
 
   Future<void> _getCurrentLocation() async {
     setState(() => isLoadingLocation = true);

@@ -1,3 +1,4 @@
+import 'package:bad_words/bad_words.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:letwork/features/review/cubit/review_cubit.dart';
@@ -19,15 +20,29 @@ class AddReviewScreen extends StatefulWidget {
 class _AddReviewScreenState extends State<AddReviewScreen> {
   final _formKey = GlobalKey<FormState>();
   final _commentController = TextEditingController();
+  final _filter = Filter();
   int _rating = 5;
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      final commentText = _commentController.text;
+
+      if (_filter.isProfane(commentText)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Yorumunuzda uygunsuz kelimeler tespit edildi."),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
       context.read<ReviewCubit>().addOrUpdateReview(
         userId: widget.userId,
         businessId: widget.businessId,
         rating: _rating,
-        comment: _commentController.text,
+        comment: commentText,
       );
     }
   }
@@ -79,14 +94,14 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                       "İşletmeyi değerlendirin",
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFFFF0000), // Kırmızı tema
+                        color: const Color(0xFFFF0000),
                       ),
                     ),
                     const SizedBox(height: 24),
                     Text(
                       "Puanınız",
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: const Color(0xFFFF0000), // Kırmızı tema
+                        color: const Color(0xFFFF0000),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -132,7 +147,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                     Text(
                       "Yorumunuz",
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: const Color(0xFFFF0000), // Kırmızı tema
+                        color: const Color(0xFFFF0000),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -142,11 +157,11 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                         hintText: "Deneyiminizi paylaşın...",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: const Color(0xFFFF0000).withOpacity(0.3)), // Kırmızı tema
+                          borderSide: BorderSide(color: const Color(0xFFFF0000).withOpacity(0.3)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: const Color(0xFFFF0000), width: 2), // Kırmızı tema
+                          borderSide: BorderSide(color: const Color(0xFFFF0000), width: 2),
                         ),
                         filled: true,
                         fillColor: Colors.grey.shade50,
@@ -163,7 +178,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                       child: ElevatedButton(
                         onPressed: state is ReviewLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF0000), // Kırmızı tema
+                          backgroundColor: const Color(0xFFFF0000),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
