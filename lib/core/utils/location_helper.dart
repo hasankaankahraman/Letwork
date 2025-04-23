@@ -10,7 +10,7 @@ class LocationHelper {
   ));
 
   /// 📍 Koordinattan şehir adını alır
-  static Future<String?> getCityFromCoordinates(double lat, double lon) async {
+  static Future<String> getCityFromCoordinates(double lat, double lon) async {
     final url =
         "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$lat&lon=$lon";
 
@@ -22,6 +22,7 @@ class LocationHelper {
       print("📍 [Koordinat]: ($lat, $lon)");
       print("🌍 [Adres verisi]: $address");
 
+      // Şehir, ilçe, köy, eyalet gibi bilgileri alıyoruz
       final fullCity = [
         address?['city'],
         address?['town'],
@@ -31,10 +32,11 @@ class LocationHelper {
         address?['region'],
       ].whereType<String>().toSet().join(" ");
 
-      return fullCity.isNotEmpty ? fullCity : null;
+      // Eğer şehir adı varsa, onu döndür, yoksa "Şehir adı alınamadı" döndür
+      return fullCity.isNotEmpty ? fullCity : "Şehir adı alınamadı";
     } catch (e) {
       print("❌ [getCityFromCoordinates] Hata: $e");
-      return null;
+      return "Şehir adı alınamadı"; // Hata durumunda "Şehir adı alınamadı" döndürüyoruz
     }
   }
 
@@ -53,29 +55,33 @@ class LocationHelper {
 
         if (lat != null && lon != null) {
           print("✅ [$city] için koordinatlar: ($lat, $lon)");
-          return LatLng(lat, lon);
+          return LatLng(lat, lon); // Koordinatları döndür
         }
       }
     } catch (e) {
       print("❌ [getCoordinatesFromCity] Hata: $e");
     }
 
-    return null;
+    return null; // Şehir bulunamadıysa null döndür
   }
-  // In lib/core/utils/location_helper.dart, add this method:
 
+  /// 📍 Mevcut konumdan koordinat alır
   static Future<Position> getCurrentLocation() async {
+    // Konum iznini kontrol et
     LocationPermission permission = await Geolocator.checkPermission();
 
+    // Eğer izin verilmediyse, kullanıcıdan izin iste
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }
 
+    // Eğer kalıcı olarak reddedildiyse, hata fırlat
     if (permission == LocationPermission.deniedForever ||
         permission == LocationPermission.denied) {
       throw Exception('Konum izni reddedildi');
     }
 
+    // Koordinatları al
     return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
   }

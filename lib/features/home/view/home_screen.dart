@@ -73,8 +73,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   Future<void> _getCurrentLocation() async {
+    if (isLoadingLocation) return; // Eğer zaten konum alınıyorsa, ikinci kez başlatma
+
     setState(() => isLoadingLocation = true);
 
     try {
@@ -94,14 +95,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final position = await Geolocator.getCurrentPosition();
 
-      // 🔥 SADECE şehir adı çekiyoruz (city > town > village)
+      // Koordinatlardan şehir bilgisi alınıyor
       final url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.latitude}&lon=${position.longitude}";
       final response = await Dio().get(url);
       final address = response.data['address'];
       final city = address?['city'] ?? address?['town'] ?? address?['village'];
 
       if (city != null && city.isNotEmpty) {
-        Navigator.pop(context);
+        if (!mounted) return;
         setState(() => selectedCity = city);
 
         context.read<HomeCubit>().loadBusinesses(
@@ -221,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      scrolledUnderElevation: 0, // Bu satırı ekleyin
+      scrolledUnderElevation: 0,
       elevation: 0,
       backgroundColor: Colors.white,
       leadingWidth: 120,

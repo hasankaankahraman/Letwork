@@ -102,6 +102,7 @@ class _CitySelectorModalState extends State<CitySelectorModal> {
           ),
           const SizedBox(height: 20),
 
+          // Büyükşehirler başlığı
           const Text(
             'Büyükşehirler',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
